@@ -1,0 +1,8 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"asynchronous": "0.6.7",
+		"libasync": "0.8.3",
+		"memutils": "0.4.9"
+	}
+}
