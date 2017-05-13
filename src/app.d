@@ -1,32 +1,26 @@
-import std.conv : to;
-import std.array : split;
-import std.stdio : writeln;
-import std.file : readText;
-import std.datetime : msecs;
-import std.functional : toDelegate;
+import core.thread : Thread;
 
-import asynchronous;
+import asynchronous : Queue, getEventLoop;
+
+import tcp_protocol : tcp_protocol, handlers;
+import uptime : uptime_handler;
+import datetime : datetime_handler;
+import core_temp : core_temp_handler;
+import mem_usage : mem_usage_handler;
+import cpu_usage : cpu_usage_handler, cpu_usage_thread;
+
+import config : PORT, TEMPLATE, powerline_look;
 
 void main() {
-
-    auto loop = getEventLoop();
-
-    @Coroutine
-    void coro1() {
-        auto uptime = to!float("/proc/uptime".readText().split()[0]);
-        writeln(uptime);
-        auto loop = getEventLoop();
-        auto uptime_reader = loop.time;
-        loop.callAt(uptime_reader + 20000.msecs, &coro1);
-    }
-
-    @Coroutine
-    void tcp_server(StreamReader reader, StreamWriter writer) {
-        writeln("Hello!");
-    }
-
-    auto uptime_reader = ensureFuture(loop, &coro1);
-    auto server = loop.startServer((&tcp_server).toDelegate, "localhost", "20000");
+    handlers["uptime"] = &uptime_handler;
+    handlers["datetime"] = &datetime_handler;
+    handlers["cpu_usage"] = &cpu_usage_handler;
+    handlers["core_temp"] = &core_temp_handler;
+    handlers["mem_usage"] = &mem_usage_handler;
+    auto th = new Thread(&cpu_usage_thread).start();
+    auto loop = getEventLoop;
+    auto queue1 = new Queue!string;
+    auto queue2 = new Queue!string;
+    auto server = loop.createServer(() => new tcp_protocol(queue2, queue1), "localhost", PORT);
     loop.runForever;
-
 }
