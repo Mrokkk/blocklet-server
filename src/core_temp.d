@@ -8,7 +8,6 @@ import std.file : readText, dirEntries, SpanMode;
 
 import event : event;
 import formatter : formatter;
-import config : PORT, TEMPLATE, powerline_look;
 
 string core_temp_handler(event) {
     auto f = new formatter("#cf6a4c");

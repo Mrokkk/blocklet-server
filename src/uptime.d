@@ -7,7 +7,7 @@ import std.conv : to, roundTo;
 
 import event : event;
 import formatter : formatter;
-import config : PORT, TEMPLATE, powerline_look;
+import config : powerline_look;
 
 string uptime_handler(event ev) {
     if (ev == event.right_click) {

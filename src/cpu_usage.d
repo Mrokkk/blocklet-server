@@ -13,7 +13,6 @@ import core.thread : Thread, thread_exitCriticalRegion, thread_enterCriticalRegi
 
 import event : event;
 import formatter : formatter;
-import config : PORT, TEMPLATE, powerline_look;
 
 shared(float[]) global_usage;
 

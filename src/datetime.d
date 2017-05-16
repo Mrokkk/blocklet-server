@@ -5,8 +5,8 @@ import std.process : executeShell;
 import std.datetime : msecs, Clock;
 
 import event : event;
+import config : powerline_look;
 import formatter : formatter, modifiers;
-import config : PORT, TEMPLATE, powerline_look;
 
 string datetime_handler(event ev) {
     auto current_time = Clock.currTime();

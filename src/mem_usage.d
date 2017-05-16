@@ -8,7 +8,6 @@ import std.regex : regex, matchAll;
 import event : event;
 import utils : human_readable_size;
 import formatter : formatter, modifiers;
-import config : PORT, TEMPLATE, powerline_look;
 
 string mem_usage_handler(event) {
     auto meminfo = "/proc/meminfo".readText();
