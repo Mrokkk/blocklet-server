@@ -1,25 +1,14 @@
 module mem_usage;
 
 import std.conv : to;
-import std.math : abs;
 import std.array : split;
 import std.file : readText;
-import std.format : format;
 import std.regex : regex, matchAll;
 
-import formatter;
 import event : event;
+import utils : human_readable_size;
+import formatter : formatter, modifiers;
 import config : PORT, TEMPLATE, powerline_look;
-
-string human_readable_size(float num) {
-    foreach (unit; ["", "M", "G", "T"]) {
-        if (abs(num) < 1024.0) {
-            return "%3.1f%s".format(num, unit);
-        }
-        num /= 1024.0;
-    }
-    return "%.1f%s".format(num, "Pi");
-}
 
 string mem_usage_handler(event) {
     auto meminfo = "/proc/meminfo".readText();

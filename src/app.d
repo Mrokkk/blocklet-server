@@ -4,15 +4,16 @@ import std.stdio;
 import std.conv : to;
 import uptime : uptime_handler;
 import std.array : split;
-import datetime : datetime_handler;
-import core_temp : core_temp_handler;
-import mem_usage : mem_usage_handler;
-import cpu_usage : cpu_usage_handler, cpu_usage_thread;
-
 import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
 
 import event : event;
-import config : PORT, TEMPLATE, powerline_look;
+import config : PORT;
+
+import datetime : datetime_handler;
+import core_temp : core_temp_handler;
+import mem_usage : mem_usage_handler;
+import disk_usage : disk_usage_handler;
+import cpu_usage : cpu_usage_handler, cpu_usage_thread;
 
 string function(event)[string] handlers;
 string function(event) bad_block = (event) {
@@ -25,6 +26,7 @@ void main() {
     handlers["cpu_usage"] = &cpu_usage_handler;
     handlers["core_temp"] = &core_temp_handler;
     handlers["mem_usage"] = &mem_usage_handler;
+    handlers["disk_usage"] = &disk_usage_handler;
     auto th = new Thread(&cpu_usage_thread).start();
     disableDefaultSignalHandlers();
     auto server = listenTCP(PORT, (conn) {
