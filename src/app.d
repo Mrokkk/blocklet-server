@@ -1,15 +1,20 @@
 import core.thread : Thread;
 
-import asynchronous : Queue, getEventLoop;
-
-import tcp_protocol : tcp_protocol, handlers;
+import std.stdio;
 import uptime : uptime_handler;
 import datetime : datetime_handler;
 import core_temp : core_temp_handler;
 import mem_usage : mem_usage_handler;
 import cpu_usage : cpu_usage_handler, cpu_usage_thread;
 
+import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
+
 import config : PORT, TEMPLATE, powerline_look;
+
+string function()[string] handlers;
+string function() bad_block = () {
+    throw new Exception("");
+};
 
 void main() {
     handlers["uptime"] = &uptime_handler;
@@ -18,7 +23,19 @@ void main() {
     handlers["core_temp"] = &core_temp_handler;
     handlers["mem_usage"] = &mem_usage_handler;
     auto th = new Thread(&cpu_usage_thread).start();
-    auto loop = getEventLoop;
-    auto server = loop.createServer(() => new tcp_protocol, "localhost", PORT);
-    loop.runForever;
+    disableDefaultSignalHandlers();
+    auto server = listenTCP(PORT, (conn) {
+        conn.waitForData();
+        auto data = new ubyte[conn.leastSize];
+        conn.read(data);
+        try {
+            auto fn = handlers.get(cast(string) data, bad_block);
+            conn.write(fn());
+        }
+        catch(Exception e) {
+            conn.write("No blocklet!");
+        }
+        conn.finalize();
+    }, "0.0.0.0");
+    runEventLoop();
 }

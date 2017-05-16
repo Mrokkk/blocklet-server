@@ -11,8 +11,6 @@ import std.regex : regex, matchAll;
 import std.algorithm : map, count, sum;
 import core.thread : Thread, thread_exitCriticalRegion, thread_enterCriticalRegion;
 
-import asynchronous;
-
 import formatter : formatter;
 import config : PORT, TEMPLATE, powerline_look;
 
@@ -25,12 +23,21 @@ string cpu_usage_handler() {
     auto f = new formatter("#2d8659");
     f.add_label("CPU_USAGE");
     foreach (val; usage) {
-        f.add_value("% 6.2f".format(val));
+        if (val > 80) {
+            f.set_color("red").add_value("% 6.2f".format(val)).set_color("#2d8659");
+        }
+        else if (val > 50) {
+            f.set_color("yellow").add_value("% 6.2f".format(val)).set_color("#2d8659");
+        }
+        else {
+            f.add_value("% 6.2f".format(val));
+        }
     }
     return f.get();
 }
 
 void cpu_usage_thread() {
+
     auto get_core_times() {
         auto values = "/proc/stat".readText()[1 .. $].matchAll(regex("cpu.*"))
             .map!(a => a.hit().split()[1 .. $].map!(a => a.to!int()));
@@ -41,6 +48,7 @@ void cpu_usage_thread() {
         }
         return tuple(idles, total);
     }
+
     while (1) {
         auto start = get_core_times();
         Thread.sleep(2000.msecs);

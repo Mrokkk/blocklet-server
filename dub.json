@@ -1,12 +1,12 @@
 {
-    "name": "blocklet-server",
-    "authors": [
-        "Mrokkk"
-    ],
-    "description": "Server/client application for handling i3blocks blocklets",
-    "copyright": "Copyright © 2017, Mrokkk",
-    "license": "MIT",
-    "dependencies": {
-        "asynchronous": "~>0.6.7"
-    }
+	"name": "blocklet-server",
+	"authors": [
+		"Mrokkk"
+	],
+	"dependencies": {
+		"vibe-d": "~>0.7.31"
+	},
+	"description": "Server/client application for handling i3blocks blocklets",
+	"copyright": "Copyright © 2017, Mrokkk",
+	"license": "MIT"
 }
