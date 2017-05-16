@@ -8,17 +8,17 @@ import argparse
 
 PORT = 20000
 
-def pargse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('block', help='Block name')
-    return parser.parse_args()
-
 def main():
-    args = pargse_args()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    event = 0
     try:
+        event = os.environ['BLOCK_BUTTON']
+    except:
+        pass
+    try:
+        block_name = os.environ['BLOCK_NAME']
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(('127.0.0.1', PORT))
-        sock.send(bytes(args.block, 'ascii'))
+        sock.send(bytes("{} {}".format(block_name, event), 'ascii'))
         data = sock.recv(1024)
         print(data.decode('utf-8'))
     except Exception as exc:

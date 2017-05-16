@@ -1,7 +1,9 @@
 import core.thread : Thread;
 
 import std.stdio;
+import std.conv : to;
 import uptime : uptime_handler;
+import std.array : split;
 import datetime : datetime_handler;
 import core_temp : core_temp_handler;
 import mem_usage : mem_usage_handler;
@@ -9,10 +11,11 @@ import cpu_usage : cpu_usage_handler, cpu_usage_thread;
 
 import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
 
+import event : event;
 import config : PORT, TEMPLATE, powerline_look;
 
-string function()[string] handlers;
-string function() bad_block = () {
+string function(event)[string] handlers;
+string function(event) bad_block = (event) {
     throw new Exception("");
 };
 
@@ -28,11 +31,17 @@ void main() {
         conn.waitForData();
         auto data = new ubyte[conn.leastSize];
         conn.read(data);
+        auto splitted = (cast(string) data).split();
         try {
-            auto fn = handlers.get(cast(string) data, bad_block);
-            conn.write(fn());
+            auto fn = handlers.get(splitted[0], bad_block);
+            auto ev = 0;
+            if (splitted.length > 1) {
+                ev = splitted[1].to!int;
+            }
+            conn.write(fn(cast(event) ev));
         }
         catch(Exception e) {
+        writeln(e);
             conn.write("No blocklet!");
         }
         conn.finalize();

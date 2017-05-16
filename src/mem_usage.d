@@ -8,6 +8,7 @@ import std.format : format;
 import std.regex : regex, matchAll;
 
 import formatter;
+import event : event;
 import config : PORT, TEMPLATE, powerline_look;
 
 string human_readable_size(float num) {
@@ -20,7 +21,7 @@ string human_readable_size(float num) {
     return "%.1f%s".format(num, "Pi");
 }
 
-string mem_usage_handler() {
+string mem_usage_handler(event) {
     auto meminfo = "/proc/meminfo".readText();
     auto memtotal = meminfo.matchAll(regex("MemTotal.*")).hit().split()[1].to!float;
     auto memfree = meminfo.matchAll(regex("MemFree.*")).hit().split()[1].to!float;

@@ -11,12 +11,13 @@ import std.regex : regex, matchAll;
 import std.algorithm : map, count, sum;
 import core.thread : Thread, thread_exitCriticalRegion, thread_enterCriticalRegion;
 
+import event : event;
 import formatter : formatter;
 import config : PORT, TEMPLATE, powerline_look;
 
 shared(float[]) global_usage;
 
-string cpu_usage_handler() {
+string cpu_usage_handler(event) {
     thread_enterCriticalRegion();
     auto usage = global_usage;
     thread_exitCriticalRegion();

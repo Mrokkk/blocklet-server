@@ -5,10 +5,14 @@ import std.file : readText;
 import std.format : format;
 import std.conv : to, roundTo;
 
+import event : event;
 import formatter : formatter;
 import config : PORT, TEMPLATE, powerline_look;
 
-string uptime_handler() {
+string uptime_handler(event ev) {
+    if (ev == event.right_click) {
+        return "It works!";
+    }
     auto uptime = "/proc/uptime".readText().split()[0].to!float().roundTo!int();
     auto hours = uptime / 3600;
     auto minutes = (uptime % 3600) / 60;
