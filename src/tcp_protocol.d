@@ -24,7 +24,7 @@ class tcp_protocol : Protocol {
         try {
             auto fn = handlers.get(cast(string) data, bad_block);
             auto output = fn();
-            writeln("Sending block: %s".format(cast(string) data));
+            //writeln("Sending block: %s".format(cast(string) data));
             this.transport_.write(output);
         }
         catch(Exception e) {
@@ -37,6 +37,8 @@ class tcp_protocol : Protocol {
     }
 
     void connectionLost(Exception exception) {
+        this.transport_.writeEof();
+        this.transport_.close();
     }
 
     void connectionMade(BaseTransport transport) {
