@@ -20,7 +20,7 @@ string uptime_handler(event ev) {
         return " <span color=\"#cf6a4c\"></span><span background=\"#cf6a4c\"><span color=\"#0d0d0d\"><b>UPTIME</b></span></span> <span color=\"#cf6a4c\">%02dh%02d</span> ".format(hours, minutes);
     }
     else {
-        auto f = new formatter("#cf6a4c");
+        auto f = new formatter("#2d8659");
         return f.add_label("UPTIME").add_value("%02dh%02d".format(hours, minutes)).get();
     }
 }

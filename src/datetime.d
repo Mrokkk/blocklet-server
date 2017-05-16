@@ -5,7 +5,7 @@ import std.process : executeShell;
 import std.datetime : msecs, Clock;
 
 import event : event;
-import formatter : formatter;
+import formatter : formatter, modifiers;
 import config : PORT, TEMPLATE, powerline_look;
 
 string datetime_handler(event ev) {
@@ -20,7 +20,7 @@ string datetime_handler(event ev) {
             current_time.second);
     }
     else {
-        auto f = new formatter("#00ccff");
+        auto f = new formatter("#3399ff");
         return f.add_value("%s, %d %s %d, %02d:%02d:%02d".format(
             current_time.dayOfWeek, current_time.day, current_time.month,
             current_time.year, current_time.hour, current_time.minute,

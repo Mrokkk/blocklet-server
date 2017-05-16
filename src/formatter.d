@@ -5,7 +5,8 @@ import std.format : format;
 
 enum modifiers {
     none,
-    small_font
+    small_font,
+    bold
 }
 
 class formatter {
@@ -31,6 +32,9 @@ class formatter {
         foreach (mod; mods) {
             if (mod == modifiers.small_font) {
                 value_string = "<small>" ~ value_string ~ "</small>";
+            }
+            else if (mod == modifiers.bold) {
+                value_string = "<b>" ~ value_string ~ "</b>";
             }
         }
         string_ ~= value_string ~ " ";
