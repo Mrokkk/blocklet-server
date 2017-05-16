@@ -16,7 +16,7 @@ string mem_usage_handler(event) {
     auto memfree = meminfo.matchAll(regex("MemFree.*")).hit().split()[1].to!float;
     auto buffers = meminfo.matchAll(regex("Buffers.*")).hit().split()[1].to!float;
     auto cached = meminfo.matchAll(regex("Cached.*")).hit().split()[1].to!float;
-    auto f = new formatter("#2d8659");
+    auto f = new formatter("#8080ff");
     return f.add_label("MEM_USAGE")
             .add_value("FREE", [modifiers.small_font]).add_value(human_readable_size(memfree))
             .add_value("CACHE", [modifiers.small_font]).add_value(human_readable_size(cached))
