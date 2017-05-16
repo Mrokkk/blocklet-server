@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import socket
-import string
-import argparse
 
 PORT = 20000
 
