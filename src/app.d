@@ -19,8 +19,6 @@ void main() {
     handlers["mem_usage"] = &mem_usage_handler;
     auto th = new Thread(&cpu_usage_thread).start();
     auto loop = getEventLoop;
-    auto queue1 = new Queue!string;
-    auto queue2 = new Queue!string;
-    auto server = loop.createServer(() => new tcp_protocol(queue2, queue1), "localhost", PORT);
+    auto server = loop.createServer(() => new tcp_protocol, "localhost", PORT);
     loop.runForever;
 }

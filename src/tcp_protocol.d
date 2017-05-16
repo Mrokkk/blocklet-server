@@ -3,7 +3,7 @@ module tcp_protocol;
 import std.conv : to;
 import std.stdio : writeln;
 import std.format : format;
-import asynchronous : Protocol, Queue, Transport, BaseTransport;
+import asynchronous : Protocol, Transport, BaseTransport;
 
 string function()[string] handlers;
 string function() bad_block = () {
@@ -12,13 +12,7 @@ string function() bad_block = () {
 
 class tcp_protocol : Protocol {
 
-    private Queue!string input_, output_;
     private Transport transport_;
-
-    this(ref Queue!string input, ref Queue!string output) {
-        input_ = input;
-        output_ = output;
-    }
 
     void dataReceived(const(void)[] data) {
         try {
