@@ -3,12 +3,12 @@ module formatter;
 import std.conv : to;
 import std.format : format;
 
-class formatter {
+enum modifiers {
+    none,
+    small_font
+}
 
-    enum modifiers {
-        none,
-        small_font
-    }
+class formatter {
 
     private string string_;
 
@@ -37,6 +37,7 @@ class formatter {
         return this;
     }
 
+    @property
     string get() {
         return string_ ~ "</span>";
     }

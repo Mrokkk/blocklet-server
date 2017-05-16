@@ -16,9 +16,10 @@ string datetime_handler() {
     }
     else {
         auto f = new formatter("#00ccff");
-        return f.add_label("DATETIME").add_value("%s, %d %s %d, %02d:%02d:%02d".format(
-            current_time.dayOfWeek, current_time.day, current_time.month,
-            current_time.year, current_time.hour, current_time.minute,
-            current_time.second)).get();
+        return f.add_label("DATETIME")
+                .add_value("%s, %d %s %d, %02d:%02d:%02d".format(
+                    current_time.dayOfWeek, current_time.day, current_time.month,
+                    current_time.year, current_time.hour, current_time.minute,
+                    current_time.second)).get;
     }
 }

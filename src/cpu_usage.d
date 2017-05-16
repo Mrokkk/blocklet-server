@@ -33,14 +33,14 @@ string cpu_usage_handler() {
             f.add_value("% 6.2f".format(val));
         }
     }
-    return f.get();
+    return f.get;
 }
 
 void cpu_usage_thread() {
 
     auto get_core_times() {
         auto values = "/proc/stat".readText()[1 .. $].matchAll(regex("cpu.*"))
-            .map!(a => a.hit().split()[1 .. $].map!(a => a.to!int()));
+            .map!(a => a.hit().split()[1 .. $].map!(a => a.to!int));
         int[] idles, total;
         foreach (core_data; values) {
             total ~= sum(core_data);
@@ -55,8 +55,8 @@ void cpu_usage_thread() {
         auto end = get_core_times();
         float[] usage;
         foreach (idle_start, idle_end, total_start, total_end; zip(start[0], end[0], start[1], end[1])) {
-            auto idle = to!float(idle_end - idle_start);
-            auto total = to!float(total_end - total_start);
+            auto idle = (idle_end - idle_start).to!float;
+            auto total = (total_end - total_start).to!float;
             usage ~= (1000 * (total - idle) / total) / 10;
         }
         thread_enterCriticalRegion();
