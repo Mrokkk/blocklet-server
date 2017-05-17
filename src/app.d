@@ -9,6 +9,7 @@ import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
 import event : event;
 import config : PORT;
 
+import ifaces : ifaces_handler;
 import datetime : datetime_handler;
 import core_temp : core_temp_handler;
 import mem_usage : mem_usage_handler;
@@ -27,6 +28,7 @@ void main() {
     handlers["core_temp"] = &core_temp_handler;
     handlers["mem_usage"] = &mem_usage_handler;
     handlers["disk_usage"] = &disk_usage_handler;
+    handlers["ifaces"] = &ifaces_handler;
     auto th = new Thread(&cpu_usage_thread).start();
     disableDefaultSignalHandlers();
     auto server = listenTCP(PORT, (conn) {
@@ -43,7 +45,6 @@ void main() {
             conn.write(fn(cast(event) ev));
         }
         catch(Exception e) {
-        writeln(e);
             conn.write("No blocklet!");
         }
         conn.finalize();
