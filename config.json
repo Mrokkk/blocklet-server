@@ -22,7 +22,7 @@
         },
         "uptime": {
             "color": "#2d8659",
-            "show_label": true
+            "show_label": false
         },
         "ifaces": {
             "color": "#8080ff",

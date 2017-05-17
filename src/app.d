@@ -40,7 +40,7 @@ void main() {
         auto splitted = (cast(string) data).split();
         try {
             auto fn = blocklets[splitted[0]];
-            writeln("Blocklet: %s".format(splitted[0]));
+            //writeln("Blocklet: %s".format(splitted[0]));
             auto f = new formatter(conf.color(splitted[0]));
             if (conf.show_label(splitted[0])) {
                 f.add_label(splitted[0].toUpper);
