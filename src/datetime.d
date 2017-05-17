@@ -5,17 +5,10 @@ import std.process : executeShell;
 import std.datetime : msecs, Clock;
 
 import event : event;
-import config : config;
 import blocklet : blocklet;
 import formatter : formatter, modifiers;
 
 class datetime : blocklet {
-
-    private config config_;
-
-    this(config c) {
-        config_ = c;
-    }
 
     void call(formatter f) {
         auto current_time = Clock.currTime();

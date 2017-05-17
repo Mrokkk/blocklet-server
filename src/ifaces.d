@@ -1,12 +1,10 @@
 module ifaces;
 
-import std.stdio;
 import std.conv : to;
 import std.format : format;
 import std.socket : AddressFamily;
 
 import event : event;
-import config : config;
 import blocklet : blocklet;
 import formatter : formatter;
 

@@ -6,18 +6,11 @@ import std.file : readText;
 import std.regex : regex, matchAll;
 
 import event : event;
-import config : config;
 import blocklet : blocklet;
 import utils : human_readable_size;
 import formatter : formatter, modifiers;
 
 class mem_usage : blocklet {
-
-    private config config_;
-
-    this(config c) {
-        config_ = c;
-    }
 
     void call(formatter f) {
         auto meminfo = "/proc/meminfo".readText();

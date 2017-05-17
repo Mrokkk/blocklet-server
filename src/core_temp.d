@@ -7,17 +7,10 @@ import std.string: strip;
 import std.file : readText, dirEntries, SpanMode;
 
 import event : event;
-import config : config;
 import blocklet : blocklet;
 import formatter : formatter;
 
 class core_temp : blocklet {
-
-    private config config_;
-
-    this(config c) {
-        config_ = c;
-    }
 
     void call(formatter f) {
         f.add_value("%(%d\xc2\xb0C%| %)".format(

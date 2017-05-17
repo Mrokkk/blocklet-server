@@ -25,13 +25,13 @@ blocklet[string] blocklets;
 
 void main() {
     auto conf = new config("config.json");
-    blocklets["uptime"] = new uptime(conf);
-    blocklets["datetime"] = new datetime(conf);
-    blocklets["cpu_usage"] = new cpu_usage(conf);
-    blocklets["core_temp"] = new core_temp(conf);
-    blocklets["mem_usage"] = new mem_usage(conf);
-    blocklets["disk_usage"] = new disk_usage(conf);
+    blocklets["uptime"] = new uptime;
     blocklets["ifaces"] = new ifaces;
+    blocklets["datetime"] = new datetime;
+    blocklets["core_temp"] = new core_temp;
+    blocklets["mem_usage"] = new mem_usage;
+    blocklets["disk_usage"] = new disk_usage;
+    blocklets["cpu_usage"] = new cpu_usage(conf);
     disableDefaultSignalHandlers();
     auto server = listenTCP(PORT, (conn) {
         conn.waitForData();

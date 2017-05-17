@@ -6,7 +6,6 @@ import std.math : abs;
 import std.format : format;
 
 import event : event;
-import config : config;
 import blocklet : blocklet;
 import formatter : formatter;
 import utils : human_readable_size;
@@ -30,12 +29,6 @@ struct stat_fs {
 extern (C) int statfs(const char *path, stat_fs *buf);
 
 class disk_usage : blocklet {
-
-    private config config_;
-
-    this(config c) {
-        config_ = c;
-    }
 
     void call(formatter f) {
         auto data = new stat_fs;

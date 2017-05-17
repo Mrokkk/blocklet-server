@@ -6,17 +6,10 @@ import std.format : format;
 import std.conv : to, roundTo;
 
 import event : event;
-import config : config;
 import blocklet : blocklet;
 import formatter : formatter;
 
 class uptime : blocklet {
-
-    private config config_;
-
-    this(config c) {
-        config_ = c;
-    }
 
     void call(formatter f) {
         auto uptime = "/proc/uptime".readText().split()[0].to!float().roundTo!int();
