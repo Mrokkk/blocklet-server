@@ -19,7 +19,7 @@ import cpu_usage : cpu_usage_handler, cpu_usage_thread;
 
 string function(event, config)[string] handlers;
 string function(event, config) bad_block = (event, config) {
-    throw new Exception("");
+    throw new Exception("No such block");
 };
 
 void main() {

@@ -6,7 +6,6 @@ import std.file : readText;
 import std.json : JSONValue, parseJSON;
 
 ushort PORT = 20000;
-bool powerline_look = false;
 
 class config {
 
@@ -17,11 +16,11 @@ class config {
     }
 
     bool show_label(string block_name) {
-        return json_[block_name]["show_label"].to!string == "true";
+        return json_["blocks"][block_name]["show_label"].to!string == "true";
     }
 
     string color(string block_name) {
-        return json_[block_name]["color"].str;
+        return json_["blocks"][block_name]["color"].str;
     }
 
 }
