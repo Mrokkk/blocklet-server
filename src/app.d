@@ -3,17 +3,18 @@ import core.thread : Thread;
 import std.conv : to;
 import std.array : split;
 import std.stdio : writeln;
+import std.format : format;
 import std.string : toUpper;
 import std.path : expandTilde;
 import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
 
 import event : event;
-import config : PORT, config;
-
 import blocklet : blocklet;
+import config : PORT, config;
 import formatter : formatter;
 
 import uptime : uptime;
+import ifaces : ifaces;
 import datetime : datetime;
 import core_temp : core_temp;
 import mem_usage : mem_usage;
@@ -30,6 +31,7 @@ void main() {
     blocklets["core_temp"] = new core_temp(conf);
     blocklets["mem_usage"] = new mem_usage(conf);
     blocklets["disk_usage"] = new disk_usage(conf);
+    blocklets["ifaces"] = new ifaces;
     disableDefaultSignalHandlers();
     auto server = listenTCP(PORT, (conn) {
         conn.waitForData();
@@ -38,6 +40,7 @@ void main() {
         auto splitted = (cast(string) data).split();
         try {
             auto fn = blocklets[splitted[0]];
+            writeln("Blocklet: %s".format(splitted[0]));
             auto f = new formatter(conf.color(splitted[0]));
             if (conf.show_label(splitted[0])) {
                 f.add_label(splitted[0].toUpper);
