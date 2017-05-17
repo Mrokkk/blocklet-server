@@ -32,24 +32,18 @@ extern (C) int statfs(const char *path, stat_fs *buf);
 class disk_usage : blocklet {
 
     private config config_;
-    immutable private string name_ = "disk_usage";
 
     this(config c) {
         config_ = c;
     }
 
-    string name() {
-        return name_;
-    }
-
-    string call(event) {
+    void call(formatter f) {
         auto data = new stat_fs;
         statfs("/", data);
-        auto f = new formatter(config_.color(name_));
-        if (config_.show_label(name_)) {
-            f.add_label("DISK");
-        }
-        return f.add_value(human_readable_size((data.f_bavail * data.f_bsize / 1024).to!float)).get;
+        f.add_value(human_readable_size((data.f_bavail * data.f_bsize / 1024).to!float));
+    }
+
+    void handle_event(event) {
     }
 
 }

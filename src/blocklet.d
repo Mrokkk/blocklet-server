@@ -1,8 +1,9 @@
 module blocklet;
 
 import event : event;
+import formatter : formatter;
 
 interface blocklet {
-    string name();
-    string call(event);
+    void call(formatter);
+    void handle_event(event);
 }

@@ -33,7 +33,7 @@ string ifaces_handler(event, config) {
     ifaddrs* temp = ifaces;
     while (ifaces.ifa_next != cast(ifaddrs*)0) {
         if (ifaces.ifa_addr.sa_family is AddressFamily.INET) {
-            writeln("%s".format(ifaces.ifa_name.to!string));
+            writeln("%s %s".format(ifaces.ifa_name.to!string, ifaces.ifa_addr.sa_data));
         }
         ifaces = ifaces.ifa_next;
     }

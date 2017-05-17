@@ -22,26 +22,17 @@ class cpu_usage : blocklet {
 
     Thread thread_;
     private config config_;
-    immutable private string name_ = "cpu_usage";
 
     this(config c) {
         config_ = c;
         thread_ = new Thread(&cpu_usage_thread).start();
     }
 
-    string name() {
-        return name_;
-    }
-
-    string call(event) {
+    void call(formatter f) {
         thread_enterCriticalRegion();
         auto usage = global_usage;
         thread_exitCriticalRegion();
-        auto default_color = config_.color(name_);
-        auto f = new formatter(default_color);
-        if (config_.show_label(name_)) {
-            f.add_label("CPU_USAGE");
-        }
+        auto default_color = config_.color("cpu_usage");
         foreach (val; usage) {
             if (val > 80) {
                 f.set_color("red").add_value("% 6.2f".format(val)).set_color(default_color);
@@ -53,7 +44,9 @@ class cpu_usage : blocklet {
                 f.add_value("% 6.2f".format(val));
             }
         }
-        return f.get;
+    }
+
+    void handle_event(event) {
     }
 
 }
@@ -85,4 +78,5 @@ void cpu_usage_thread() {
         global_usage = cast(shared(float[]))usage;
         thread_exitCriticalRegion();
     }
+
 }

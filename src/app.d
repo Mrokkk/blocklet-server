@@ -3,6 +3,7 @@ import core.thread : Thread;
 import std.conv : to;
 import std.array : split;
 import std.stdio : writeln;
+import std.string : toUpper;
 import std.path : expandTilde;
 import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
 
@@ -10,6 +11,8 @@ import event : event;
 import config : PORT, config;
 
 import blocklet : blocklet;
+import formatter : formatter;
+
 import uptime : uptime;
 import datetime : datetime;
 import core_temp : core_temp;
@@ -35,11 +38,16 @@ void main() {
         auto splitted = (cast(string) data).split();
         try {
             auto fn = blocklets[splitted[0]];
-            auto ev = 0;
-            if (splitted.length > 1) {
-                ev = splitted[1].to!int;
+            auto f = new formatter(conf.color(splitted[0]));
+            if (conf.show_label(splitted[0])) {
+                f.add_label(splitted[0].toUpper);
             }
-            conn.write(fn.call(cast(event) ev));
+            if (splitted.length > 1) {
+                auto ev = splitted[1].to!int;
+                fn.handle_event(cast(event) ev);
+            }
+            fn.call(f);
+            conn.write(f.get);
         }
         catch(Exception e) {
             conn.write("No blocklet!");

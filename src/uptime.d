@@ -13,25 +13,19 @@ import formatter : formatter;
 class uptime : blocklet {
 
     private config config_;
-    immutable private string name_ = "uptime";
 
     this(config c) {
         config_ = c;
     }
 
-    string name() {
-        return name_;
-    }
-
-    string call(event ev) {
+    void call(formatter f) {
         auto uptime = "/proc/uptime".readText().split()[0].to!float().roundTo!int();
         auto hours = uptime / 3600;
         auto minutes = (uptime % 3600) / 60;
-        auto f = new formatter(config_.color("uptime"));
-        if (config_.show_label("uptime")) {
-            f.add_label("UPTIME");
-        }
-        return f.add_value("%02dh%02d".format(hours, minutes)).get();
+        f.add_value("%02dh%02d".format(hours, minutes));
+    }
+
+    void handle_event(event) {
     }
 
 }
