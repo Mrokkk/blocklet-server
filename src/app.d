@@ -9,29 +9,24 @@ import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
 import event : event;
 import config : PORT, config;
 
-import ifaces : ifaces_handler;
-import uptime : uptime_handler;
-import datetime : datetime_handler;
-import core_temp : core_temp_handler;
-import mem_usage : mem_usage_handler;
-import disk_usage : disk_usage_handler;
-import cpu_usage : cpu_usage_handler, cpu_usage_thread;
+import blocklet : blocklet;
+import uptime : uptime;
+import datetime : datetime;
+import core_temp : core_temp;
+import mem_usage : mem_usage;
+import disk_usage : disk_usage;
+import cpu_usage : cpu_usage_thread, cpu_usage;
 
-string function(event, config)[string] handlers;
-string function(event, config) bad_block = (event, config) {
-    throw new Exception("No such block");
-};
+blocklet[string] blocklets;
 
 void main() {
-    handlers["uptime"] = &uptime_handler;
-    handlers["datetime"] = &datetime_handler;
-    handlers["cpu_usage"] = &cpu_usage_handler;
-    handlers["core_temp"] = &core_temp_handler;
-    handlers["mem_usage"] = &mem_usage_handler;
-    handlers["disk_usage"] = &disk_usage_handler;
-    handlers["ifaces"] = &ifaces_handler;
     auto conf = new config("config.json");
-    auto th = new Thread(&cpu_usage_thread).start();
+    blocklets["uptime"] = new uptime(conf);
+    blocklets["datetime"] = new datetime(conf);
+    blocklets["cpu_usage"] = new cpu_usage(conf);
+    blocklets["core_temp"] = new core_temp(conf);
+    blocklets["mem_usage"] = new mem_usage(conf);
+    blocklets["disk_usage"] = new disk_usage(conf);
     disableDefaultSignalHandlers();
     auto server = listenTCP(PORT, (conn) {
         conn.waitForData();
@@ -39,12 +34,12 @@ void main() {
         conn.read(data);
         auto splitted = (cast(string) data).split();
         try {
-            auto fn = handlers.get(splitted[0], bad_block);
+            auto fn = blocklets[splitted[0]];
             auto ev = 0;
             if (splitted.length > 1) {
                 ev = splitted[1].to!int;
             }
-            conn.write(fn(cast(event) ev, conf));
+            conn.write(fn.call(cast(event) ev));
         }
         catch(Exception e) {
             conn.write("No blocklet!");

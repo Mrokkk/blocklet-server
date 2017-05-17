@@ -7,6 +7,7 @@ import std.format : format;
 
 import event : event;
 import config : config;
+import blocklet : blocklet;
 import formatter : formatter;
 import utils : human_readable_size;
 
@@ -28,12 +29,27 @@ struct stat_fs {
 
 extern (C) int statfs(const char *path, stat_fs *buf);
 
-string disk_usage_handler(event, config c) {
-    auto data = new stat_fs;
-    statfs("/", data);
-    auto f = new formatter(c.color("disk_usage"));
-    if (c.show_label("disk_usage")) {
-        f.add_label("DISK");
+class disk_usage : blocklet {
+
+    private config config_;
+    immutable private string name_ = "disk_usage";
+
+    this(config c) {
+        config_ = c;
     }
-    return f.add_value(human_readable_size((data.f_bavail * data.f_bsize / 1024).to!float)).get;
+
+    string name() {
+        return name_;
+    }
+
+    string call(event) {
+        auto data = new stat_fs;
+        statfs("/", data);
+        auto f = new formatter(config_.color(name_));
+        if (config_.show_label(name_)) {
+            f.add_label("DISK");
+        }
+        return f.add_value(human_readable_size((data.f_bavail * data.f_bsize / 1024).to!float)).get;
+    }
+
 }
