@@ -1,23 +1,24 @@
 import core.thread : Thread;
 
-import std.stdio;
 import std.conv : to;
-import uptime : uptime_handler;
 import std.array : split;
+import std.stdio : writeln;
+import std.path : expandTilde;
 import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
 
 import event : event;
-import config : PORT;
+import config : PORT, config;
 
 import ifaces : ifaces_handler;
+import uptime : uptime_handler;
 import datetime : datetime_handler;
 import core_temp : core_temp_handler;
 import mem_usage : mem_usage_handler;
 import disk_usage : disk_usage_handler;
 import cpu_usage : cpu_usage_handler, cpu_usage_thread;
 
-string function(event)[string] handlers;
-string function(event) bad_block = (event) {
+string function(event, config)[string] handlers;
+string function(event, config) bad_block = (event, config) {
     throw new Exception("");
 };
 
@@ -29,6 +30,7 @@ void main() {
     handlers["mem_usage"] = &mem_usage_handler;
     handlers["disk_usage"] = &disk_usage_handler;
     handlers["ifaces"] = &ifaces_handler;
+    auto conf = new config("config.json");
     auto th = new Thread(&cpu_usage_thread).start();
     disableDefaultSignalHandlers();
     auto server = listenTCP(PORT, (conn) {
@@ -42,7 +44,7 @@ void main() {
             if (splitted.length > 1) {
                 ev = splitted[1].to!int;
             }
-            conn.write(fn(cast(event) ev));
+            conn.write(fn(cast(event) ev, conf));
         }
         catch(Exception e) {
             conn.write("No blocklet!");

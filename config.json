@@ -1,0 +1,26 @@
+{
+    "core_temp": {
+        "color": "#cf6a4c",
+        "show_label": true
+    },
+    "cpu_usage": {
+        "color": "#2d8659",
+        "show_label": true
+    },
+    "datetime": {
+        "color": "#3399ff",
+        "show_label": true
+    },
+    "disk_usage": {
+        "color": "#2d8659",
+        "show_label": true
+    },
+    "mem_usage": {
+        "color": "#8080ff",
+        "show_label": true
+    },
+    "uptime": {
+        "color": "#2d8659",
+        "show_label": true
+    }
+}

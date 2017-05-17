@@ -6,6 +6,7 @@ import std.math : abs;
 import std.format : format;
 
 import event : event;
+import config : config;
 import formatter : formatter;
 import utils : human_readable_size;
 
@@ -27,10 +28,12 @@ struct stat_fs {
 
 extern (C) int statfs(const char *path, stat_fs *buf);
 
-string disk_usage_handler(event) {
+string disk_usage_handler(event, config c) {
     auto data = new stat_fs;
     statfs("/", data);
-    auto f = new formatter("#2d8659");
-    return f.add_label("DISK_FREE")
-            .add_value(human_readable_size((data.f_bavail * data.f_bsize / 1024).to!float)).get;
+    auto f = new formatter(c.color("disk_usage"));
+    if (c.show_label("disk_usage")) {
+        f.add_label("DISK");
+    }
+    return f.add_value(human_readable_size((data.f_bavail * data.f_bsize / 1024).to!float)).get;
 }

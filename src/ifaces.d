@@ -6,6 +6,7 @@ import std.format : format;
 import std.socket;
 
 import event : event;
+import config : config;
 import formatter : formatter;
 
 struct sockaddr {
@@ -32,7 +33,7 @@ struct ifaddrs {
 extern (C) int getifaddrs(ifaddrs **ifap);
 extern (C) void freeifaddrs(ifaddrs *ifa);
 
-string ifaces_handler(event) {
+string ifaces_handler(event, config) {
     ifaddrs *ifaces = null;
     getifaddrs(&ifaces);
     ifaddrs *temp = ifaces;

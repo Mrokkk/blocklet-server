@@ -12,16 +12,19 @@ import std.algorithm : map, count, sum;
 import core.thread : Thread, thread_exitCriticalRegion, thread_enterCriticalRegion;
 
 import event : event;
+import config : config;
 import formatter : formatter;
 
 shared(float[]) global_usage;
 
-string cpu_usage_handler(event) {
+string cpu_usage_handler(event, config c) {
     thread_enterCriticalRegion();
     auto usage = global_usage;
     thread_exitCriticalRegion();
-    auto f = new formatter("#2d8659");
-    f.add_label("CPU_USAGE");
+    auto f = new formatter(c.color("cpu_usage"));
+    if (c.show_label("cpu_usage")) {
+        f.add_label("CPU_USAGE");
+    }
     foreach (val; usage) {
         if (val > 80) {
             f.set_color("red").add_value("% 6.2f".format(val)).set_color("#2d8659");
