@@ -5,8 +5,7 @@ import std.array : split;
 import std.file : readText;
 import std.regex : regex, matchAll;
 
-import event : event;
-import blocklet : blocklet;
+import blocklet : blocklet, event;
 import utils : human_readable_size;
 import formatter : formatter, modifiers;
 

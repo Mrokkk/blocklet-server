@@ -4,9 +4,8 @@ import std.conv : to;
 import std.format : format;
 import std.socket : AddressFamily;
 
-import event : event;
-import blocklet : blocklet;
 import formatter : formatter;
+import blocklet : blocklet, event;
 
 struct sockaddr {
     uint sa_family;

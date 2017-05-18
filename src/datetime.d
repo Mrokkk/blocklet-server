@@ -4,8 +4,7 @@ import std.format : format;
 import std.process : executeShell;
 import std.datetime : msecs, Clock;
 
-import event : event;
-import blocklet : blocklet;
+import blocklet : blocklet, event;
 import formatter : formatter, modifiers;
 
 class datetime : blocklet {

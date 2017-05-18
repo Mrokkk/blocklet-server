@@ -1,14 +1,13 @@
 module core_temp;
 
 import std.conv : to;
+import std.string: strip;
 import std.format : format;
 import std.algorithm : map;
-import std.string: strip;
 import std.file : readText, dirEntries, SpanMode;
 
-import event : event;
-import blocklet : blocklet;
 import formatter : formatter;
+import blocklet : blocklet, event;
 
 class core_temp : blocklet {
 

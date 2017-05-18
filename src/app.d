@@ -8,10 +8,9 @@ import std.string : toUpper;
 import std.path : expandTilde;
 import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
 
-import event : event;
-import blocklet : blocklet;
 import config : PORT, config;
 import formatter : formatter;
+import blocklet : blocklet, event;
 
 import uptime : uptime;
 import ifaces : ifaces;

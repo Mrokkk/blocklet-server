@@ -5,9 +5,8 @@ import std.file : readText;
 import std.format : format;
 import std.conv : to, roundTo;
 
-import event : event;
-import blocklet : blocklet;
 import formatter : formatter;
+import blocklet : blocklet, event;
 
 class uptime : blocklet {
 

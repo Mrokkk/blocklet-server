@@ -5,9 +5,8 @@ import std.conv : to;
 import std.math : abs;
 import std.format : format;
 
-import event : event;
-import blocklet : blocklet;
 import formatter : formatter;
+import blocklet : blocklet, event;
 import utils : human_readable_size;
 
 struct stat_fs {

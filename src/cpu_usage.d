@@ -11,10 +11,9 @@ import std.regex : regex, matchAll;
 import std.algorithm : map, count, sum;
 import core.thread : Thread, thread_exitCriticalRegion, thread_enterCriticalRegion;
 
-import event : event;
 import config : config;
-import blocklet : blocklet;
 import formatter : formatter;
+import blocklet : blocklet, event;
 
 shared(float[]) global_usage;
 
