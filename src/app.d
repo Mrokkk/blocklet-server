@@ -23,7 +23,7 @@ import cpu_usage : cpu_usage_thread, cpu_usage;
 blocklet[string] blocklets;
 
 void main() {
-    auto conf = new config("config.json");
+    auto conf = new config("~/.blocklets.json".expandTilde);
     blocklets["uptime"] = new uptime;
     blocklets["ifaces"] = new ifaces;
     blocklets["datetime"] = new datetime;

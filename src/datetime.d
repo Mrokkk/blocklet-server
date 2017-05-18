@@ -18,8 +18,12 @@ class datetime : blocklet {
     }
 
     void handle_event(event ev) {
-        if (ev == event.right_click) {
-            executeShell("notify-send \"`cal`\"");
+        switch (ev) {
+            case event.right_click: {
+                executeShell("notify-send \"`cal`\"");
+                break;
+            }
+            default: break;
         }
     }
 
