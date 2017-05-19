@@ -1,5 +1,6 @@
-import core.thread : Thread;
+module app;
 
+import std.c.stdlib;
 import std.conv : to;
 import std.array : split;
 import std.stdio : writeln;
@@ -17,13 +18,12 @@ import ifaces : ifaces;
 import datetime : datetime;
 import core_temp : core_temp;
 import mem_usage : mem_usage;
+import cpu_usage : cpu_usage;
 import disk_usage : disk_usage;
-import cpu_usage : cpu_usage_thread, cpu_usage;
-
-blocklet[string] blocklets;
 
 void main() {
     auto conf = new config("~/.blocklets.json".expandTilde);
+    blocklet[string] blocklets;
     blocklets["uptime"] = new uptime;
     blocklets["ifaces"] = new ifaces;
     blocklets["datetime"] = new datetime;
@@ -32,29 +32,34 @@ void main() {
     blocklets["disk_usage"] = new disk_usage;
     blocklets["cpu_usage"] = new cpu_usage(conf);
     disableDefaultSignalHandlers();
-    auto server = listenTCP(PORT, (conn) {
-        conn.waitForData();
-        auto data = new ubyte[conn.leastSize];
-        conn.read(data);
-        auto splitted = (cast(string) data).split();
-        try {
-            auto fn = blocklets[splitted[0]];
-            //writeln("Blocklet: %s".format(splitted[0]));
-            auto f = new formatter(conf.color(splitted[0]));
-            if (conf.show_label(splitted[0])) {
-                f.add_label(splitted[0].toUpper);
+    try {
+        auto server = listenTCP(PORT, (conn) {
+            conn.waitForData();
+            auto data = new ubyte[conn.leastSize];
+            conn.read(data);
+            auto splitted = (cast(string) data).split();
+            try {
+                auto fn = blocklets[splitted[0]];
+                //writeln("Blocklet: %s".format(splitted[0]));
+                auto f = new formatter(conf.color(splitted[0]));
+                if (conf.show_label(splitted[0])) {
+                    f.add_label(splitted[0].toUpper);
+                }
+                if (splitted.length > 1) {
+                    auto ev = splitted[1].to!int;
+                    fn.handle_event(cast(event) ev);
+                }
+                fn.call(f);
+                conn.write(f.get);
             }
-            if (splitted.length > 1) {
-                auto ev = splitted[1].to!int;
-                fn.handle_event(cast(event) ev);
+            catch(Exception e) {
+                conn.write("No blocklet!");
             }
-            fn.call(f);
-            conn.write(f.get);
-        }
-        catch(Exception e) {
-            conn.write("No blocklet!");
-        }
-        conn.finalize();
-    }, "0.0.0.0");
-    runEventLoop();
+            conn.finalize();
+        }, "0.0.0.0");
+        runEventLoop();
+    }
+    catch (Exception exc) {
+        writeln("Cannot start server: %s".format(exc.msg));
+    }
 }
