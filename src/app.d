@@ -7,7 +7,7 @@ import std.format : format;
 import std.string : toUpper;
 import std.path : expandTilde;
 import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers,
-       TCPConnection, logInfo, setLogFormat, FileLogger;
+       TCPConnection, logInfo;
 
 import config : PORT, config;
 import blocklet : blocklet, event;
@@ -47,6 +47,14 @@ void handler(TCPConnection conn, ref config conf, ref blocklet[string] blocklets
     conn.finalize();
 }
 
+version(unittest) {
+
+import dunit;
+mixin Main;
+
+}
+else {
+
 void main() {
     config conf;
     blocklet[string] blocklets;
@@ -66,4 +74,6 @@ void main() {
     catch (Exception exc) {
         writeln("Cannot start server: %s".format(exc.msg));
     }
+}
+
 }

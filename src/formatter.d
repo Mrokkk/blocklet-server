@@ -48,6 +48,24 @@ class block_layout {
         return elements_;
     }
 
+    /// Can add elements
+    unittest {
+        import dunit;
+        auto b = new block_layout;
+        b.add_title("title");
+        b.get.length.assertEquals(1);
+        b.get[0].value.assertEquals("title");
+        b.get[0].color.assertEquals(colors.normal);
+        b.add_label("label");
+        b.get.length.assertEquals(2);
+        b.get[1].value.assertEquals("label");
+        b.get[1].color.assertEquals(colors.normal);
+        b.add_value("value");
+        b.get.length.assertEquals(3);
+        b.get[2].value.assertEquals("value");
+        b.get[2].color.assertEquals(colors.normal);
+    }
+
 }
 
 class formatter {
@@ -55,7 +73,7 @@ class formatter {
     private string string_;
     private string default_color_;
 
-    this(string c) {
+    private this(string c) {
         default_color_ = c;
         string_ = "| <span color=\"%s\">".format(c);
     }
@@ -68,23 +86,13 @@ class formatter {
         }
     }
 
-    string color_to_string(colors c, string default_color = "") {
+    private static string color_to_string(colors c, string default_color = "") {
         switch (c) {
             case colors.normal:
                 return default_color;
             default:
                 return to!string(c);
         }
-    }
-
-    formatter set_color(string color) {
-        string_ ~= "</span><span color=\"%s\">".format(color);
-        return this;
-    }
-
-    formatter add_label(string label) {
-        string_ ~= "<b>%s</b> ".format(label);
-        return this;
     }
 
     formatter add_value(T)(T value, modifiers[] mods = []) {
@@ -106,12 +114,36 @@ class formatter {
         return string_ ~ "</span>";
     }
 
+    /// Can add elements
     unittest {
-        import dunit.ng;
+        import dunit;
         auto f = new formatter("color");
         f.get.assertEquals("| <span color=\"color\"></span>");
-        f.add_label("LABEL");
-        f.get.assertEquals("| <span color=\"color\"><b>LABEL</b> </span>");
+        f.add_value("val1");
+        f.get.assertEquals("| <span color=\"color\">val1 </span>");
+        f.add_value("val2");
+        f.get.assertEquals("| <span color=\"color\">val1 val2 </span>");
+        f.add_value("val3", [modifiers.small_font]);
+        f.get.assertEquals("| <span color=\"color\">val1 val2 <small>val3</small> </span>");
+        f.add_value("val4", [modifiers.bold]);
+        f.get.assertEquals("| <span color=\"color\">val1 val2 <small>val3</small> <b>val4</b> </span>");
     }
 
+    /// color_to_string works
+    unittest {
+        import dunit;
+        color_to_string(colors.normal, "color").assertEquals("color");
+        color_to_string(colors.red, "color").assertEquals("red");
+        color_to_string(colors.yellow, "color").assertEquals("yellow");
+    }
+
+}
+
+/// formatter can parse block_layout
+unittest {
+    import dunit;
+    auto b = new block_layout;
+    b.add_title("title").add_label("label").add_value("12");
+    auto f = new formatter(b, "def_color");
+    f.get.assertEquals("| <span color=\"def_color\"><b>title</b> <small>label</small> 12 </span>");
 }

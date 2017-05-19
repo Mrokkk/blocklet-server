@@ -14,8 +14,6 @@
         "name": "unittest",
         "targetName": "tests",
         "targetType": "executable",
-        "excludedSourceFiles": ["src/app.d"],
-        "mainSourceFile": "test/main.d",
         "dependencies": {
             "d-unit": "~>0.8.1"
         }
