@@ -40,7 +40,7 @@ void main() {
             try {
                 auto fn = blocklets[splitted[0]];
                 //writeln("Blocklet: %s".format(splitted[0]));
-                auto layout = new block_layout(conf.color(splitted[0]));
+                auto layout = new block_layout();
                 if (conf.show_label(splitted[0])) {
                     layout.add_title(splitted[0].toUpper);
                 }
@@ -49,7 +49,7 @@ void main() {
                     fn.handle_event(cast(event) ev);
                 }
                 fn.call(layout);
-                auto f = new formatter(layout);
+                auto f = new formatter(layout, conf.color(splitted[0]));
                 conn.write(f.get);
             }
             catch(Exception e) {

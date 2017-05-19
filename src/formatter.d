@@ -10,39 +10,37 @@ enum modifiers {
     bold
 }
 
+enum colors {
+    normal,
+    white,
+    yellow,
+    red,
+    brown
+}
+
 class block_layout {
 
     struct layout_element {
         string value;
         modifiers[] mods;
-        string color;
+        colors color;
     }
 
-    private string default_color_;
     private layout_element[] elements_;
 
-    this(string default_color) {
-        default_color_ = default_color;
-    }
-
     block_layout add_title(string title) {
-        elements_ ~= layout_element(title, [modifiers.bold], default_color_);
+        elements_ ~= layout_element(title, [modifiers.bold], colors.normal);
         return this;
     }
 
     block_layout add_label(string label) {
-        elements_ ~= layout_element(label, [modifiers.small_font], default_color_);
+        elements_ ~= layout_element(label, [modifiers.small_font], colors.normal);
         return this;
     }
 
     block_layout add_value(string label) {
-        elements_ ~= layout_element(label, [], default_color_);
+        elements_ ~= layout_element(label, [], colors.normal);
         return this;
-    }
-
-    @property
-    string default_color() {
-        return default_color_;
     }
 
     @property
@@ -55,15 +53,27 @@ class block_layout {
 class formatter {
 
     private string string_;
+    private string default_color_;
 
     this(string c) {
+        default_color_ = c;
         string_ = "| <span color=\"%s\">".format(c);
     }
 
-    this(block_layout layout) {
-        string_ = "| <span color=\"%s\">".format(layout.default_color);
+    this(block_layout layout, string default_color) {
+        default_color_ = default_color;
+        string_ = "| <span color=\"%s\">".format(default_color_);
         foreach (elem; layout.get) {
             add_value(elem.value, elem.mods);
+        }
+    }
+
+    string color_to_string(colors c, string default_color = "") {
+        switch (c) {
+            case colors.normal:
+                return default_color;
+            default:
+                return to!string(c);
         }
     }
 
