@@ -14,7 +14,7 @@ class block_layout {
 
     struct layout_element {
         string value;
-        modifiers mods[];
+        modifiers[] mods;
         string color;
     }
 
@@ -56,6 +56,10 @@ class formatter {
 
     private string string_;
 
+    this(string c) {
+        string_ = "| <span color=\"%s\">".format(c);
+    }
+
     this(block_layout layout) {
         string_ = "| <span color=\"%s\">".format(layout.default_color);
         foreach (elem; layout.get) {
@@ -90,6 +94,14 @@ class formatter {
     @property
     string get() {
         return string_ ~ "</span>";
+    }
+
+    unittest {
+        import dunit.ng;
+        auto f = new formatter("color");
+        f.get.assertEquals("| <span color=\"color\"></span>");
+        f.add_label("LABEL");
+        f.get.assertEquals("| <span color=\"color\"><b>LABEL</b> </span>");
     }
 
 }

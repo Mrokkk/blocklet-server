@@ -1,12 +1,23 @@
 {
-	"name": "blocklet-server",
-	"authors": [
-		"Mrokkk"
-	],
-	"dependencies": {
-		"vibe-d": "~>0.7.31"
-	},
-	"description": "Server/client application for handling i3blocks blocklets",
-	"copyright": "Copyright © 2017, Mrokkk",
-	"license": "MIT"
+    "name": "blocklet-server",
+    "authors": ["Mrokkk"],
+    "description": "Server/client application for handling i3blocks blocklets",
+    "copyright": "Copyright © 2017, Mrokkk",
+    "license": "MIT",
+    "dependencies": {
+        "vibe-d": "~>0.7.31"
+    },
+    "configurations": [{
+        "name": "application",
+        "targetType": "executable"
+    }, {
+        "name": "unittest",
+        "targetName": "tests",
+        "targetType": "executable",
+        "excludedSourceFiles": ["src/app.d"],
+        "mainSourceFile": "test/main.d",
+        "dependencies": {
+            "d-unit": "~>0.8.1"
+        }
+    }]
 }
