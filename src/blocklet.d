@@ -1,6 +1,6 @@
 module blocklet;
 
-import formatter : formatter;
+import formatter : block_layout;
 
 enum event {
     none = 0,
@@ -12,6 +12,6 @@ enum event {
 }
 
 interface blocklet {
-    void call(formatter);
+    void call(block_layout);
     void handle_event(event);
 }

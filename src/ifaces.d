@@ -4,7 +4,7 @@ import std.conv : to;
 import std.format : format;
 import std.socket : AddressFamily;
 
-import formatter : formatter;
+import formatter : block_layout;
 import blocklet : blocklet, event;
 
 struct sockaddr {
@@ -27,7 +27,7 @@ extern (C) void freeifaddrs(ifaddrs *ifa);
 
 class ifaces : blocklet {
 
-    void call(formatter f) {
+    void call(block_layout f) {
         ifaddrs* ifaces = null;
         getifaddrs(&ifaces);
         ifaddrs* temp = ifaces;

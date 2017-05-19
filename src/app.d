@@ -1,6 +1,5 @@
 module app;
 
-import std.c.stdlib;
 import std.conv : to;
 import std.array : split;
 import std.stdio : writeln;
@@ -10,8 +9,8 @@ import std.path : expandTilde;
 import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers;
 
 import config : PORT, config;
-import formatter : formatter;
 import blocklet : blocklet, event;
+import formatter : formatter, block_layout;
 
 import uptime : uptime;
 import ifaces : ifaces;
@@ -30,7 +29,7 @@ void main() {
     blocklets["core_temp"] = new core_temp;
     blocklets["mem_usage"] = new mem_usage;
     blocklets["disk_usage"] = new disk_usage;
-    blocklets["cpu_usage"] = new cpu_usage(conf);
+    blocklets["cpu_usage"] = new cpu_usage;
     disableDefaultSignalHandlers();
     try {
         auto server = listenTCP(PORT, (conn) {
@@ -41,15 +40,16 @@ void main() {
             try {
                 auto fn = blocklets[splitted[0]];
                 //writeln("Blocklet: %s".format(splitted[0]));
-                auto f = new formatter(conf.color(splitted[0]));
+                auto layout = new block_layout(conf.color(splitted[0]));
                 if (conf.show_label(splitted[0])) {
-                    f.add_label(splitted[0].toUpper);
+                    layout.add_title(splitted[0].toUpper);
                 }
                 if (splitted.length > 1) {
                     auto ev = splitted[1].to!int;
                     fn.handle_event(cast(event) ev);
                 }
-                fn.call(f);
+                fn.call(layout);
+                auto f = new formatter(layout);
                 conn.write(f.get);
             }
             catch(Exception e) {

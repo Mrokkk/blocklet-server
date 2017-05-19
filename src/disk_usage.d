@@ -5,7 +5,7 @@ import std.conv : to;
 import std.math : abs;
 import std.format : format;
 
-import formatter : formatter;
+import formatter : block_layout;
 import blocklet : blocklet, event;
 import utils : human_readable_size;
 
@@ -29,7 +29,7 @@ extern (C) int statfs(const char *path, stat_fs *buf);
 
 class disk_usage : blocklet {
 
-    void call(formatter f) {
+    void call(block_layout f) {
         auto data = new stat_fs;
         statfs("/", data);
         f.add_value(human_readable_size((data.f_bavail * data.f_bsize / 1024).to!float));

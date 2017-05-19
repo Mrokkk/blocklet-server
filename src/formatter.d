@@ -2,6 +2,7 @@ module formatter;
 
 import std.conv : to;
 import std.format : format;
+import std.typecons : Tuple, tuple;
 
 enum modifiers {
     none,
@@ -9,12 +10,57 @@ enum modifiers {
     bold
 }
 
+class block_layout {
+
+    struct layout_element {
+        string value;
+        modifiers mods[];
+        string color;
+    }
+
+    private string default_color_;
+    private layout_element[] elements_;
+
+    this(string default_color) {
+        default_color_ = default_color;
+    }
+
+    block_layout add_title(string title) {
+        elements_ ~= layout_element(title, [modifiers.bold], default_color_);
+        return this;
+    }
+
+    block_layout add_label(string label) {
+        elements_ ~= layout_element(label, [modifiers.small_font], default_color_);
+        return this;
+    }
+
+    block_layout add_value(string label) {
+        elements_ ~= layout_element(label, [], default_color_);
+        return this;
+    }
+
+    @property
+    string default_color() {
+        return default_color_;
+    }
+
+    @property
+    layout_element[] get() {
+        return elements_;
+    }
+
+}
+
 class formatter {
 
     private string string_;
 
-    this(string default_color) {
-        string_ = "| <span color=\"%s\">".format(default_color);
+    this(block_layout layout) {
+        string_ = "| <span color=\"%s\">".format(layout.default_color);
+        foreach (elem; layout.get) {
+            add_value(elem.value, elem.mods);
+        }
     }
 
     formatter set_color(string color) {
