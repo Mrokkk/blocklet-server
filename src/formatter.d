@@ -33,13 +33,13 @@ class block_layout {
         return this;
     }
 
-    block_layout add_label(string label) {
-        elements_ ~= layout_element(label, [modifiers.small_font], colors.normal);
+    block_layout add_label(string label, colors color = colors.normal) {
+        elements_ ~= layout_element(label, [modifiers.small_font], color);
         return this;
     }
 
-    block_layout add_value(string label) {
-        elements_ ~= layout_element(label, [], colors.normal);
+    block_layout add_value(string label, colors color = colors.normal) {
+        elements_ ~= layout_element(label, [], color);
         return this;
     }
 
@@ -82,7 +82,13 @@ class formatter {
         default_color_ = default_color;
         string_ = "| <span color=\"%s\">".format(default_color_);
         foreach (elem; layout.get) {
+            if (elem.color != colors.normal) {
+                set_color(color_to_string(elem.color));
+            }
             add_value(elem.value, elem.mods);
+            if (elem.color != colors.normal) {
+                set_color(default_color_);
+            }
         }
     }
 
@@ -93,6 +99,11 @@ class formatter {
             default:
                 return to!string(c);
         }
+    }
+
+    private formatter set_color(string color) {
+        string_ ~= "</span><span color=\"%s\">".format(color);
+        return this;
     }
 
     formatter add_value(T)(T value, modifiers[] mods = []) {

@@ -11,8 +11,8 @@ import std.regex : regex, matchAll;
 import std.algorithm : map, count, sum;
 import core.thread : Thread, thread_exitCriticalRegion, thread_enterCriticalRegion;
 
-import formatter : block_layout;
 import blocklet : blocklet, event;
+import formatter : block_layout, colors;
 
 shared(float[]) global_usage;
 
@@ -28,17 +28,15 @@ class cpu_usage : blocklet {
         thread_enterCriticalRegion();
         auto usage = global_usage;
         thread_exitCriticalRegion();
-        //auto default_color = config_.color("cpu_usage");
         foreach (val; usage) {
-            //if (val > 80) {
-                //f.set_color("red").add_value("% 6.2f".format(val)).set_color(default_color);
-            //}
-            //else if (val > 50) {
-                //f.set_color("yellow").add_value("% 6.2f".format(val)).set_color(default_color);
-            //}
-            //else {
-            f.add_value("% 6.2f".format(val));
-            //}
+            colors color = colors.normal;
+            if (val > 80) {
+                color = colors.red;
+            }
+            else if (val > 50) {
+                color = colors.yellow;
+            }
+            f.add_value("% 6.2f".format(val), color);
         }
     }
 
