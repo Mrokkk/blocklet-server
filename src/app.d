@@ -26,6 +26,10 @@ void handler(TCPConnection conn, ref config conf, ref blocklet[string] blocklets
     auto data = new ubyte[conn.leastSize];
     conn.read(data);
     auto splitted = (cast(string) data).split();
+    if (!(splitted[0] in blocklets)) {
+        conn.close();
+        return;
+    }
     try {
         auto fn = blocklets[splitted[0]];
         logInfo("Blocklet: %s".format(splitted[0]));
