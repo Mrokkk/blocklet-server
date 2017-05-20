@@ -7,15 +7,30 @@
     "dependencies": {
         "vibe-d": "~>0.7.31"
     },
-    "configurations": [{
-        "name": "application",
-        "targetType": "executable"
-    }, {
-        "name": "unittest",
-        "targetName": "tests",
-        "targetType": "executable",
-        "dependencies": {
-            "d-unit": "~>0.8.1"
+    "excludedSourceFiles": ["src/client/*"],
+    "subPackages": [
+        {
+            "name": "client",
+            "targetName": "client",
+            "targetType": "executable",
+            "sourcePaths": ["src/client"],
+            "sourceFiles": ["src/config.d"],
+            "importPaths": ["src"],
+            "dependencies": {}
         }
-    }]
+    ],
+    "configurations": [
+        {
+            "name": "application",
+            "targetType": "executable"
+        },
+        {
+            "name": "unittest",
+            "targetName": "tests",
+            "targetType": "executable",
+            "dependencies": {
+                "d-unit": "~>0.8.1"
+            }
+        }
+    ]
 }
