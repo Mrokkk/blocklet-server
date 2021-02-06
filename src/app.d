@@ -15,6 +15,7 @@ import formatter : formatter, block_layout;
 
 import uptime : uptime;
 import ifaces : ifaces;
+import battery : battery;
 import datetime : datetime;
 import core_temp : core_temp;
 import mem_usage : mem_usage;
@@ -46,6 +47,7 @@ void handler(TCPConnection conn, ref config conf, ref blocklet[string] blocklets
         conn.write(f.get);
     }
     catch(Exception e) {
+        writeln(e);
         conn.write("No blocklet!");
     }
     conn.finalize();
@@ -70,6 +72,7 @@ void main() {
     blocklets["mem_usage"] = new mem_usage;
     blocklets["disk_usage"] = new disk_usage;
     blocklets["cpu_usage"] = new cpu_usage;
+    blocklets["battery"] = new battery;
     disableDefaultSignalHandlers();
     try {
         auto server = listenTCP(PORT, (conn) => handler(conn, conf, blocklets), "0.0.0.0");

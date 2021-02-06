@@ -20,7 +20,7 @@ class datetime : blocklet {
     void handle_event(event ev) {
         switch (ev) {
             case event.right_click: {
-                executeShell("notify-send \"`cal`\"");
+                executeShell("gsimplecal");
                 break;
             }
             default: break;

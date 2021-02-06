@@ -18,7 +18,7 @@ shared(float[]) global_usage;
 
 class cpu_usage : blocklet {
 
-    Thread thread_;
+    private Thread thread_;
 
     this() {
         thread_ = new Thread(&cpu_usage_thread).start();
