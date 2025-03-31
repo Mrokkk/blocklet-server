@@ -36,7 +36,7 @@ class cpu_usage : blocklet {
             else if (val > 50) {
                 color = colors.yellow;
             }
-            f.add_value("% 6.2f".format(val), color);
+            f.add_value("%3.0f".format(val), color);
         }
     }
 
