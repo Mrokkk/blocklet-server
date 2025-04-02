@@ -8,10 +8,12 @@ import std.format : format;
 
 import config;
 
-void main() {
+void main()
+{
     writeln("OK");
     auto block_name = environment.get("BLOCK_NAME");
-    if (block_name is null) {
+    if (block_name is null)
+    {
         writeln("No blocklet name!");
         return;
     }
@@ -19,12 +21,14 @@ void main() {
     int event = event_str is null ? 0 : event_str.to!int;
     auto sock = new Socket(AddressFamily.INET, SocketType.STREAM);
     ubyte[1024] data;
-    try {
+    try
+    {
         sock.connect(new InternetAddress("127.0.0.1", PORT));
         sock.send("%s %d".format(block_name, event));
         sock.receive(data);
     }
-    catch (Exception exc) {
+    catch (Exception exc)
+    {
         writeln(exc.msg);
     }
     writeln(cast(string) data);

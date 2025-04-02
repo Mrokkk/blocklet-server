@@ -9,7 +9,8 @@ import formatter : block_layout;
 import blocklet : blocklet, event;
 import utils : human_readable_size;
 
-struct stat_fs {
+struct stat_fs
+{
     ulong f_type;    /* Type of filesystem (see below) */
     ulong f_bsize;   /* Optimal transfer block size */
     ulong f_blocks;  /* Total data blocks in filesystem */
@@ -27,15 +28,16 @@ struct stat_fs {
 
 extern (C) int statfs(const char *path, stat_fs *buf);
 
-class disk_usage : blocklet {
-
-    void call(block_layout f) {
+class disk_usage : blocklet
+{
+    void call(block_layout f)
+    {
         auto data = new stat_fs;
         statfs("/", data);
         f.add_value(human_readable_size((data.f_bavail * data.f_bsize / 1024).to!float));
     }
 
-    void handle_event(event) {
+    void handle_event(event)
+    {
     }
-
 }

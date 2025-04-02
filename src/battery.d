@@ -10,9 +10,10 @@ import std.file : readText, dirEntries, SpanMode;
 import formatter : block_layout, colors;
 import blocklet : blocklet, event;
 
-class battery : blocklet {
-
-    void call(block_layout f) {
+class battery : blocklet
+{
+    void call(block_layout f)
+    {
         int mean = 0;
         int numberOfValues = 0;
 
@@ -25,10 +26,12 @@ class battery : blocklet {
 
             colors color = colors.normal;
 
-            if (val < 15) {
+            if (val < 15)
+            {
                 color = colors.red;
             }
-            else if (val < 30) {
+            else if (val < 30)
+            {
                 color = colors.yellow;
             }
             f.add_value("%d".format(val), color);
@@ -40,7 +43,7 @@ class battery : blocklet {
         }
     }
 
-    void handle_event(event) {
+    void handle_event(event)
+    {
     }
-
 }

@@ -9,9 +9,10 @@ import blocklet : blocklet, event;
 import utils : human_readable_size;
 import formatter : block_layout;
 
-class mem_usage : blocklet {
-
-    void call(block_layout f) {
+class mem_usage : blocklet
+{
+    void call(block_layout f)
+    {
         auto meminfo = "/proc/meminfo".readText();
         auto memtotal = meminfo.matchAll(regex("MemTotal.*")).hit().split()[1].to!float;
         auto memfree = meminfo.matchAll(regex("MemFree.*")).hit().split()[1].to!float;
@@ -23,7 +24,7 @@ class mem_usage : blocklet {
          .add_label("TOTAL").add_value(human_readable_size(memtotal));
     }
 
-    void handle_event(event) {
+    void handle_event(event)
+    {
     }
-
 }

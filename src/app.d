@@ -22,23 +22,28 @@ import mem_usage : mem_usage;
 import cpu_usage : cpu_usage;
 import disk_usage : disk_usage;
 
-void handler(TCPConnection conn, ref config conf, ref blocklet[string] blocklets) {
+void handler(TCPConnection conn, ref config conf, ref blocklet[string] blocklets)
+{
     conn.waitForData();
     auto data = new ubyte[conn.leastSize];
     conn.read(data);
     auto splitted = (cast(string) data).split();
-    if (!(splitted[0] in blocklets)) {
+    if (!(splitted[0] in blocklets))
+    {
         conn.close();
         return;
     }
-    try {
+    try
+    {
         auto fn = blocklets[splitted[0]];
         logInfo("Blocklet: %s".format(splitted[0]));
         auto layout = new block_layout();
-        if (conf.show_label(splitted[0])) {
+        if (conf.show_label(splitted[0]))
+        {
             layout.add_title(splitted[0].toUpper);
         }
-        if (splitted.length > 1) {
+        if (splitted.length > 1)
+        {
             auto ev = splitted[1].to!int;
             fn.handle_event(cast(event) ev);
         }
@@ -46,22 +51,26 @@ void handler(TCPConnection conn, ref config conf, ref blocklet[string] blocklets
         auto f = new formatter(layout, conf.color(splitted[0]));
         conn.write(f.get);
     }
-    catch(Exception e) {
+    catch(Exception e)
+    {
         writeln(e);
         conn.write("No blocklet!");
     }
     conn.finalize();
 }
 
-version(unittest) {
+version(unittest)
+{
 
 import dunit;
 mixin Main;
 
 }
-else {
+else
+{
 
-void main() {
+void main()
+{
     config conf;
     blocklet[string] blocklets;
     conf = new config("~/.blocklets.json".expandTilde);
@@ -74,11 +83,13 @@ void main() {
     blocklets["cpu_usage"] = new cpu_usage;
     blocklets["battery"] = new battery;
     disableDefaultSignalHandlers();
-    try {
+    try
+    {
         auto server = listenTCP(PORT, (conn) => handler(conn, conf, blocklets), "0.0.0.0");
         runEventLoop();
     }
-    catch (Exception exc) {
+    catch (Exception exc)
+    {
         writeln("Cannot start server: %s".format(exc.msg));
     }
 }

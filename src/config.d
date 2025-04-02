@@ -7,20 +7,22 @@ import std.json : JSONValue, parseJSON;
 
 ushort PORT = 20000;
 
-class config {
-
-    private JSONValue json_;
-
-    this(string path) {
+class config
+{
+    this(string path)
+    {
         json_ = path.readText().parseJSON();
     }
 
-    bool show_label(string block_name) {
+    bool show_label(string block_name)
+    {
         return json_["blocks"][block_name]["show_label"].to!string == "true";
     }
 
-    string color(string block_name) {
+    string color(string block_name)
+    {
         return json_["blocks"][block_name]["color"].str;
     }
 
+    private JSONValue json_;
 }
