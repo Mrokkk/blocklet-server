@@ -9,25 +9,29 @@ import std.array : split, join;
 import std.typecons : tuple, Tuple;
 import std.regex : regex, matchAll;
 import std.algorithm : map, count, sum;
-import core.thread : Thread, thread_exitCriticalRegion, thread_enterCriticalRegion;
+import core.thread : Thread;
+import core.sync.mutex : Mutex;
 
 import blocklet : blocklet, event;
 import formatter : block_layout, colors;
 
 shared(float[]) global_usage;
 
+shared(Mutex) mtx;
+
 class cpu_usage : blocklet
 {
     this()
     {
+        mtx = new shared Mutex();
         thread_ = new Thread(&cpu_usage_thread).start();
     }
 
     void call(block_layout f)
     {
-        thread_enterCriticalRegion();
+        mtx.lock_nothrow();
         auto usage = global_usage;
-        thread_exitCriticalRegion();
+        mtx.unlock_nothrow();
         foreach (val; usage)
         {
             colors color = colors.normal;
@@ -77,9 +81,9 @@ void cpu_usage_thread()
             auto total = (total_end - total_start).to!float;
             usage ~= (1000 * (total - idle) / total) / 10;
         }
-        thread_enterCriticalRegion();
+        mtx.lock_nothrow();
         global_usage = cast(shared(float[]))usage;
-        thread_exitCriticalRegion();
+        mtx.unlock_nothrow();
     }
 }
 
