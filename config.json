@@ -1,10 +1,10 @@
 {
     "blocks": {
-        "core_temp": {
+        "temp": {
             "color": "#cf6a4c",
             "show_label": true
         },
-        "cpu_usage": {
+        "cpu": {
             "color": "#2d8659",
             "show_label": true
         },
@@ -12,11 +12,11 @@
             "color": "#3399ff",
             "show_label": false
         },
-        "disk_usage": {
+        "disk": {
             "color": "#2d8659",
             "show_label": true
         },
-        "mem_usage": {
+        "mem": {
             "color": "#8080ff",
             "show_label": true
         },

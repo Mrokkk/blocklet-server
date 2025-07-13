@@ -7,20 +7,19 @@ import std.format : format;
 import std.string : toUpper;
 import std.path : expandTilde;
 import vibe.d : listenTCP, runEventLoop, disableDefaultSignalHandlers,
-       TCPConnection, logInfo;
+       TCPConnection, logDebug;
 
 import config : PORT, config;
 import blocklet : blocklet, event;
 import formatter : formatter, block_layout;
 
+import mem : mem;
+import cpu : cpu;
+import disk : disk;
+import temp : temp;
 import uptime : uptime;
-import ifaces : ifaces;
 import battery : battery;
 import datetime : datetime;
-import core_temp : core_temp;
-import mem_usage : mem_usage;
-import cpu_usage : cpu_usage;
-import disk_usage : disk_usage;
 
 void handler(TCPConnection conn, ref config conf, ref blocklet[string] blocklets)
 {
@@ -28,19 +27,20 @@ void handler(TCPConnection conn, ref config conf, ref blocklet[string] blocklets
     auto data = new ubyte[conn.leastSize];
     conn.read(data);
     auto splitted = (cast(string) data).split();
-    if (!(splitted[0] in blocklets))
+    auto blocklet = splitted[0];
+    if (!(blocklet in blocklets))
     {
         conn.close();
         return;
     }
     try
     {
-        auto fn = blocklets[splitted[0]];
-        logInfo("Blocklet: %s".format(splitted[0]));
+        auto fn = blocklets[blocklet];
+        logDebug("Blocklet: %s".format(blocklet));
         auto layout = new block_layout();
-        if (conf.show_label(splitted[0]))
+        if (conf.show_label(blocklet))
         {
-            layout.add_title(splitted[0].toUpper);
+            layout.add_title(blocklet.toUpper);
         }
         if (splitted.length > 1)
         {
@@ -48,7 +48,7 @@ void handler(TCPConnection conn, ref config conf, ref blocklet[string] blocklets
             fn.handle_event(cast(event) ev);
         }
         fn.call(layout);
-        auto f = new formatter(layout, conf.color(splitted[0]));
+        auto f = new formatter(layout, conf.color(blocklet));
         conn.write(f.get);
     }
     catch(Exception e)
@@ -75,12 +75,11 @@ void main()
     blocklet[string] blocklets;
     conf = new config("~/.blocklets.json".expandTilde);
     blocklets["uptime"] = new uptime;
-    blocklets["ifaces"] = new ifaces;
     blocklets["datetime"] = new datetime;
-    blocklets["core_temp"] = new core_temp;
-    blocklets["mem_usage"] = new mem_usage;
-    blocklets["disk_usage"] = new disk_usage;
-    blocklets["cpu_usage"] = new cpu_usage;
+    blocklets["temp"] = new temp;
+    blocklets["mem"] = new mem;
+    blocklets["disk"] = new disk;
+    blocklets["cpu"] = new cpu;
     blocklets["battery"] = new battery;
     disableDefaultSignalHandlers();
     try

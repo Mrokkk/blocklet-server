@@ -1,6 +1,7 @@
-module cpu_usage;
+module cpu;
 
 import std.range : zip;
+import std.array : empty;
 import std.file : readText;
 import std.format : format;
 import std.datetime : msecs;
@@ -19,7 +20,7 @@ shared(float[]) global_usage;
 
 shared(Mutex) mtx;
 
-class cpu_usage : blocklet
+class cpu : blocklet
 {
     this()
     {
@@ -32,6 +33,11 @@ class cpu_usage : blocklet
         mtx.lock_nothrow();
         auto usage = global_usage;
         mtx.unlock_nothrow();
+        if (usage.empty)
+        {
+            f.add_value("not ready yet");
+            return;
+        }
         foreach (val; usage)
         {
             colors color = colors.normal;
@@ -58,15 +64,42 @@ void cpu_usage_thread()
 {
     auto get_core_times()
     {
-        auto values = "/proc/stat".readText()[1 .. $].matchAll(regex("cpu.*"))
-            .map!(a => a.hit().split()[1 .. $].map!(a => a.to!int));
-        int[] idles, total;
-        foreach (core_data; values)
+        version (FreeBSD)
         {
-            total ~= sum(core_data);
-            idles ~= core_data[3] + core_data[4];
+            import core.sys.freebsd.sys.sysctl : sysctlbyname;
+
+            ulong[128] values;
+            size_t len = values.sizeof;
+            ulong[] idles, total;
+
+            if (sysctlbyname("kern.cp_times", &values, &len, null, 0))
+            {
+                return tuple(idles, total);
+            }
+
+            auto cpus = len / ulong.sizeof / 5;
+
+            for (ulong i = 0; i < cpus; ++i)
+            {
+                auto off = i * 5;
+                total ~= sum(values[off .. off + 5]);
+                idles ~= values[i * 5 + 4];
+            }
+
+            return tuple(idles, total);
         }
-        return tuple(idles, total);
+        else
+        {
+            auto values = "/proc/stat".readText()[1 .. $].matchAll(regex("cpu.*"))
+                .map!(a => a.hit().split()[1 .. $].map!(a => a.to!int));
+            ulong[] idles, total;
+            foreach (core_data; values)
+            {
+                total ~= sum(core_data);
+                idles ~= core_data[3] + core_data[4];
+            }
+            return tuple(idles, total);
+        }
     }
 
     while (1)
@@ -86,4 +119,3 @@ void cpu_usage_thread()
         mtx.unlock_nothrow();
     }
 }
-
