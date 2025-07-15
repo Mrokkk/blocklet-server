@@ -17,7 +17,7 @@
             "targetName": "tests",
             "targetType": "executable",
             "dependencies": {
-                "d-unit": "~>0.8.1"
+                "d-unit": "~>0.10.2"
             }
         }
     ]

@@ -3,29 +3,43 @@ module disk;
 import std.conv : to;
 import std.format : format;
 
-import formatter : block_layout;
-import blocklet : blocklet, event;
-import utils : human_readable_size;
+import blocklet : Blocklet, Event;
+import formatter : BlockLayout;
+import utils : humanReadableSize;
 
-class disk : blocklet
+class Disk : Blocklet
 {
-    void call(block_layout f)
+    override void call(BlockLayout f)
     {
-        version (FreeBSD)
-        {
-            import core.sys.freebsd.sys.mount;
-            auto data = new statfs_t;
-            statfs("/", data);
-            f.add_label("FREE")
-             .add_value(human_readable_size((data.f_bavail * data.f_bsize / 1024).to!float));
-        }
-        else
-        {
-            // TODO
-        }
-    }
-
-    void handle_event(event)
-    {
+        f.addLabel("FREE")
+         .addValue(humanReadableSize(getFreeSpace()));
     }
 }
+
+version (FreeBSD)
+{
+
+import core.sys.freebsd.sys.mount;
+
+private ulong getFreeSpace()
+{
+    auto data = new statfs_t;
+    statfs("/", data);
+    return data.f_bavail * data.f_bsize;
+}
+
+} // FreeBSD
+
+version (linux)
+{
+
+import core.sys.posix.sys.statvfs;
+
+private ulong getFreeSpace()
+{
+    auto data = new statvfs_t;
+    statvfs("/", data);
+    return data.f_bfree * data.f_bsize;
+}
+
+} // linux

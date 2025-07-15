@@ -1,84 +1,122 @@
 module battery;
 
 import std.format : format;
+import std.typecons : tuple;
 
-import formatter : block_layout, colors;
-import blocklet : blocklet, event;
+import blocklet : Blocklet, Event;
+import formatter : BlockLayout, Colors;
 
-class battery : blocklet
+private enum State
 {
-    void call(block_layout f)
+    charged,
+    charging,
+    discharging,
+}
+
+class Battery : Blocklet
+{
+    override void call(BlockLayout f)
     {
-        version (FreeBSD)
+        const auto battery = getBatteryState();
+
+        auto color = Colors.normal;
+
+        switch (battery.state)
         {
-            import freebsd : readSysctl;
-
-            auto val = "hw.acpi.battery.life".readSysctl!uint;
-            auto state = "hw.acpi.battery.state".readSysctl!uint;
-
-            auto discharging = state == 1;
-            auto charging = state == 2;
-
-            auto color = colors.normal;
-
-            if (discharging)
-            {
-                f.add_label("DIS", colors.brown);
-                if (val < 15)
+            case State.charging:
+                f.addValue("\u2191", Colors.green); // Arrow up
+                break;
+            case State.discharging:
+                f.addValue("\u2193", Colors.brown); // Arrow down
+                if (battery.val < 15)
                 {
-                    color = colors.red;
+                    color = Colors.red;
                 }
-                else if (val < 30)
+                else if (battery.val < 30)
                 {
-                    color = colors.yellow;
+                    color = Colors.yellow;
                 }
-            }
-            else if (charging)
-            {
-                f.add_label("CHR");
-            }
-
-            f.add_value("%d".format(val), color);
+                break;
+            default:
+                break;
         }
-        else
-        {
-            import std.conv : to;
-            import std.array : split;
-            import std.string: strip;
-            import std.algorithm : map;
-            import std.file : readText, dirEntries, SpanMode;
 
-            int mean = 0;
-            int numberOfValues = 0;
-
-            foreach (val; dirEntries(
-                "/sys/class/power_supply/", "BAT{0,1}", SpanMode.depth, false)
-                    .map!(a => (a.name ~ "/capacity").readText().strip().to!int))
-            {
-                numberOfValues++;
-                mean += val;
-
-                auto color = colors.normal;
-
-                if (val < 15)
-                {
-                    color = colors.red;
-                }
-                else if (val < 30)
-                {
-                    color = colors.yellow;
-                }
-                f.add_value("%d".format(val), color);
-            }
-
-            if (mean / numberOfValues <= 5)
-            {
-                executeShell("notify-send '!!! Low battery !!!' 'Battery level is low' --icon=dialog-information -u critical -c im.error");
-            }
-        }
-    }
-
-    void handle_event(event)
-    {
+        f.addValue("%d".format(battery.val), color);
     }
 }
+
+version (FreeBSD)
+{
+
+import freebsd : readSysctl;
+
+// Reference:
+// https://man.freebsd.org/cgi/man.cgi?acpi_battery
+
+enum
+{
+    ACPI_BATT_STAT_DISCHARG = 1,
+    ACPI_BATT_STAT_CHARGING = 2,
+    ACPI_BATT_STAT_CRITICAL = 4,
+}
+
+private auto getBatteryState()
+{
+    const auto val = "hw.acpi.battery.life".readSysctl!uint;
+    const auto state = "hw.acpi.battery.state".readSysctl!uint;
+
+    State s;
+    switch (state)
+    {
+        case ACPI_BATT_STAT_DISCHARG, ACPI_BATT_STAT_CRITICAL:
+            s = State.discharging;
+            break;
+        case ACPI_BATT_STAT_CHARGING:
+            s = State.charging;
+            break;
+        default:
+            s = State.charged;
+            break;
+    }
+
+    return tuple!("val", "state")(val, s);
+}
+
+} // FreeBSD
+
+version (linux)
+{
+
+import std.conv : to;
+import std.array : split;
+import std.string: strip;
+import std.algorithm : map;
+import std.file : readText, dirEntries, SpanMode;
+
+private auto getBatteryState()
+{
+    uint sum = 0;
+    uint count = 0;
+    State s = State.charged;
+
+    foreach (const dirEntry; dirEntries("/sys/class/power_supply/", "BAT[0-12]", SpanMode.depth, false))
+    {
+        const auto val = (dirEntry.name ~ "/capacity").readText.strip.to!uint;
+        const auto state = (dirEntry.name ~ "/status").readText.strip;
+        count++;
+        sum += val;
+
+        if (state == "Discharging")
+        {
+            s = State.discharging;
+        }
+        else if (state == "Charging" && s != State.discharging)
+        {
+            s = State.charging;
+        }
+    }
+
+    return tuple!("val", "state")(sum / count, s);
+}
+
+} // linux

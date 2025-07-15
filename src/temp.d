@@ -1,54 +1,71 @@
 module temp;
 
-import std.conv : to;
-import std.string: strip;
+import std.array : empty;
 import std.format : format;
-import std.string : toStringz;
-import std.array : split, empty;
-import std.algorithm : map, filter;
-import std.file : readText, dirEntries, SpanMode;
 
-import formatter : block_layout;
-import blocklet : blocklet, event;
+import blocklet : Blocklet, Event;
+import formatter : BlockLayout;
 
-class temp : blocklet
+class Temp : Blocklet
 {
-    void call(block_layout f)
+    override void call(BlockLayout f)
     {
-        version (FreeBSD)
+        const auto temps = getTemperatures();
+
+        if (temps.empty)
         {
-            import freebsd : readSysctl;
-            uint found = 0;
-
-            for (uint i = 0; i < 12; ++i)
-            {
-                auto val = "hw.acpi.thermal.tz%d.temperature".format(i).readSysctl!uint;
-
-                if (val == 0)
-                {
-                    break;
-                }
-
-                found++;
-                f.add_value("%d".format((val - 2731) / 10));
-            }
-
-            if (!found)
-            {
-                f.add_value("no thermal zone");
-            }
+            f.addValue("cannot read");
+            return;
         }
-        else
+
+        foreach (const val; temps)
         {
-            f.add_value("%(%d%| %)".format(
-                dirEntries("/sys/class/thermal/",
-                "thermal_zone{0,1,2,3,4,5,6,7,8,9,10,11,12}", SpanMode.depth, false)
-                    .filter!(a => (a.name ~ "/type").readText().strip() == "acpitz")
-                    .map!(a => (a.name ~ "/temp").readText().strip().to!int / 1000)));
+            f.addValue("%d".format(val));
         }
-    }
-
-    void handle_event(event)
-    {
     }
 }
+
+version (FreeBSD)
+{
+
+import freebsd : readSysctl;
+
+private uint[] getTemperatures()
+{
+    uint[] temperatures;
+
+    for (uint i = 0; i < 12; ++i)
+    {
+        const auto val = "hw.acpi.thermal.tz%d.temperature".format(i).readSysctl!uint;
+
+        if (val == 0)
+        {
+            break;
+        }
+
+        temperatures ~= (val - 2731) / 10;
+    }
+
+    return temperatures;
+}
+
+} // FreeBSD
+
+version (linux)
+{
+
+import std.algorithm : map, filter;
+import std.array : array;
+import std.conv : to;
+import std.file : readText, dirEntries, SpanMode;
+import std.string: strip;
+
+private uint[] getTemperatures()
+{
+    return dirEntries("/sys/class/thermal/", "thermal_zone[0-12]", SpanMode.depth, false)
+        .filter!(a => (a.name ~ "/type").readText.strip == "acpitz")
+        .map!(a => (a.name ~ "/temp").readText.strip.to!uint / 1000)
+        .array;
+}
+
+} // linux

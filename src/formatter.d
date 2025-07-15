@@ -4,51 +4,52 @@ import std.conv : to;
 import std.format : format;
 import std.typecons : Tuple, tuple;
 
-enum modifiers
+enum Modifiers
 {
     none,
-    small_font,
+    smallFont,
     bold
 }
 
-enum colors
+enum Colors
 {
     normal,
     white,
     yellow,
     red,
-    brown
+    brown,
+    green,
 }
 
-class block_layout
+class BlockLayout
 {
-    struct layout_element
+    private struct LayoutElement
     {
         string value;
-        modifiers[] mods;
-        colors color;
+        Modifiers[] mods;
+        Colors color;
     }
 
-    block_layout add_title(string title)
+    BlockLayout addTitle(string title) nothrow
     {
-        elements_ ~= layout_element(title, [modifiers.bold], colors.normal);
+        elements_ ~= LayoutElement(title, [Modifiers.bold], Colors.normal);
         return this;
     }
 
-    block_layout add_label(string label, colors color = colors.normal)
+    BlockLayout addLabel(string label, Colors color = Colors.normal) nothrow
     {
-        elements_ ~= layout_element(label, [modifiers.small_font], color);
+        elements_ ~= LayoutElement(label, [Modifiers.smallFont], color);
         return this;
     }
 
-    block_layout add_value(string label, colors color = colors.normal)
+    BlockLayout addValue(string label, Colors color = Colors.normal) nothrow
     {
-        elements_ ~= layout_element(label, [], color);
+        elements_ ~= LayoutElement(label, [], color);
         return this;
     }
 
     @property
-    layout_element[] get()
+    LayoutElement[] get() @safe nothrow
     {
         return elements_;
     }
@@ -57,86 +58,87 @@ class block_layout
     unittest
     {
         import dunit;
-        auto b = new block_layout;
-        b.add_title("title");
+        auto b = new BlockLayout;
+        b.addTitle("title");
         b.get.length.assertEquals(1);
         b.get[0].value.assertEquals("title");
-        b.get[0].color.assertEquals(colors.normal);
-        b.add_label("label");
+        b.get[0].color.assertEquals(Colors.normal);
+        b.addLabel("label");
         b.get.length.assertEquals(2);
         b.get[1].value.assertEquals("label");
-        b.get[1].color.assertEquals(colors.normal);
-        b.add_value("value");
+        b.get[1].color.assertEquals(Colors.normal);
+        b.addValue("value");
         b.get.length.assertEquals(3);
         b.get[2].value.assertEquals("value");
-        b.get[2].color.assertEquals(colors.normal);
+        b.get[2].color.assertEquals(Colors.normal);
     }
 
-    private layout_element[] elements_;
+    private LayoutElement[] elements_;
 }
 
-class formatter
+class Formatter
 {
     private this(string c)
     {
-        default_color_ = c;
-        string_ = "| <span color=\"%s\">".format(c);
+        defaultColor_ = c;
+        string_ = "<span color=\"gray\">|</span> <span color=\"%s\">".format(c);
     }
 
-    this(block_layout layout, string default_color)
+    this(BlockLayout layout, string defaultColor)
     {
-        default_color_ = default_color;
-        string_ = "<span color=\"gray\">|</span> <span color=\"%s\">".format(default_color_);
+        defaultColor_ = defaultColor;
+        string_ = "<span color=\"gray\">|</span> <span color=\"%s\">".format(defaultColor_);
         foreach (elem; layout.get)
         {
-            if (elem.color != colors.normal)
+            if (elem.color != Colors.normal)
             {
-                set_color(color_to_string(elem.color));
+                setColor(colorToString(elem.color));
             }
-            add_value(elem.value, elem.mods);
-            if (elem.color != colors.normal)
+            addValue(elem.value, elem.mods);
+            if (elem.color != Colors.normal)
             {
-                set_color(default_color_);
+                setColor(defaultColor_);
             }
         }
     }
 
-    private static string color_to_string(colors c, string default_color = "")
+    private static string colorToString(Colors c, string defaultColor = "")
     {
         switch (c)
         {
-            case colors.normal:
-                return default_color;
+            case Colors.normal:
+                return defaultColor;
             default:
                 return to!string(c);
         }
     }
 
-    private formatter set_color(string color)
+    private Formatter setColor(string color)
     {
         string_ ~= "</span><span color=\"%s\">".format(color);
         return this;
     }
 
-    formatter add_value(T)(T value, modifiers[] mods = [])
+    Formatter addValue(T)(T value, Modifiers[] mods = [])
     {
-        auto value_string = value.to!string;
-        foreach (mod; mods) {
-            if (mod == modifiers.small_font)
+        auto valueString = value.to!string;
+        foreach (mod; mods)
+        {
+            if (mod == Modifiers.smallFont)
             {
-                value_string = "<small>" ~ value_string ~ "</small>";
+                valueString = "<small>" ~ valueString ~ "</small>";
             }
-            else if (mod == modifiers.bold)
+            else if (mod == Modifiers.bold)
             {
-                value_string = "<b>" ~ value_string ~ "</b>";
+                valueString = "<b>" ~ valueString ~ "</b>";
             }
         }
-        string_ ~= value_string ~ " ";
+        string_ ~= valueString ~ " ";
         return this;
     }
 
     @property
-    string get()
+    string get() @safe nothrow
     {
         return string_ ~ "</span>";
     }
@@ -145,37 +147,37 @@ class formatter
     unittest
     {
         import dunit;
-        auto f = new formatter("color");
-        f.get.assertEquals("| <span color=\"color\"></span>");
-        f.add_value("val1");
-        f.get.assertEquals("| <span color=\"color\">val1 </span>");
-        f.add_value("val2");
-        f.get.assertEquals("| <span color=\"color\">val1 val2 </span>");
-        f.add_value("val3", [modifiers.small_font]);
-        f.get.assertEquals("| <span color=\"color\">val1 val2 <small>val3</small> </span>");
-        f.add_value("val4", [modifiers.bold]);
-        f.get.assertEquals("| <span color=\"color\">val1 val2 <small>val3</small> <b>val4</b> </span>");
+        auto f = new Formatter("color");
+        f.get.assertEquals("<span color=\"gray\">|</span> <span color=\"color\"></span>");
+        f.addValue("val1");
+        f.get.assertEquals("<span color=\"gray\">|</span> <span color=\"color\">val1 </span>");
+        f.addValue("val2");
+        f.get.assertEquals("<span color=\"gray\">|</span> <span color=\"color\">val1 val2 </span>");
+        f.addValue("val3", [Modifiers.smallFont]);
+        f.get.assertEquals("<span color=\"gray\">|</span> <span color=\"color\">val1 val2 <small>val3</small> </span>");
+        f.addValue("val4", [Modifiers.bold]);
+        f.get.assertEquals("<span color=\"gray\">|</span> <span color=\"color\">val1 val2 <small>val3</small> <b>val4</b> </span>");
     }
 
-    /// color_to_string works
+    /// colorToString works
     unittest
     {
         import dunit;
-        color_to_string(colors.normal, "color").assertEquals("color");
-        color_to_string(colors.red, "color").assertEquals("red");
-        color_to_string(colors.yellow, "color").assertEquals("yellow");
+        colorToString(Colors.normal, "color").assertEquals("color");
+        colorToString(Colors.red, "color").assertEquals("red");
+        colorToString(Colors.yellow, "color").assertEquals("yellow");
     }
 
     private string string_;
-    private string default_color_;
+    private string defaultColor_;
 }
 
-/// formatter can parse block_layout
+/// Formatter can parse BlockLayout
 unittest
 {
     import dunit;
-    auto b = new block_layout;
-    b.add_title("title").add_label("label").add_value("12");
-    auto f = new formatter(b, "def_color");
-    f.get.assertEquals("| <span color=\"def_color\"><b>title</b> <small>label</small> 12 </span>");
+    auto b = new BlockLayout;
+    b.addTitle("title").addLabel("label").addValue("12");
+    auto f = new Formatter(b, "def_color");
+    f.get.assertEquals("<span color=\"gray\">|</span> <span color=\"def_color\"><b>title</b> <small>label</small> 12 </span>");
 }

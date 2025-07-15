@@ -1,19 +1,30 @@
 module blocklet;
 
-import formatter : block_layout;
+import formatter : BlockLayout;
 
-enum event
+enum Event
 {
     none = 0,
-    left_click = 1,
-    middle_click = 2,
-    right_click = 3,
-    scroll_up = 4,
-    scroll_down = 5
+    leftClick = 1,
+    middleClick = 2,
+    rightClick = 3,
+    scrollUp = 4,
+    scrollDown = 5
 }
 
-interface blocklet
+interface IBlocklet
 {
-    void call(block_layout);
-    void handle_event(event);
+    void call(BlockLayout);
+    void handleEvent(Event);
+}
+
+class Blocklet : IBlocklet
+{
+    void call(BlockLayout)
+    {
+    }
+
+    void handleEvent(Event)
+    {
+    }
 }

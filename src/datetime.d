@@ -1,33 +1,19 @@
 module datetime;
 
-import std.format : format;
-import std.process : executeShell;
 import std.datetime : msecs, Clock;
+import std.format : format;
 
-import formatter : block_layout;
-import blocklet : blocklet, event;
+import blocklet : Blocklet, Event;
+import formatter : BlockLayout;
 
-class datetime : blocklet
+class Datetime : Blocklet
 {
-    void call(block_layout f)
+    override void call(BlockLayout f)
     {
-        auto current_time = Clock.currTime();
-        f.add_value("%s, %d %s %d, %02d:%02d:%02d".format(
-            current_time.dayOfWeek, current_time.day, current_time.month,
-            current_time.year, current_time.hour, current_time.minute,
-            current_time.second));
-    }
-
-    void handle_event(event ev)
-    {
-        switch (ev)
-        {
-            case event.right_click:
-            {
-                executeShell("gsimplecal");
-                break;
-            }
-            default: break;
-        }
+        const auto currentTime = Clock.currTime();
+        f.addValue("%s, %d %s %d, %02d:%02d:%02d".format(
+            currentTime.dayOfWeek, currentTime.day, currentTime.month,
+            currentTime.year, currentTime.hour, currentTime.minute,
+            currentTime.second));
     }
 }

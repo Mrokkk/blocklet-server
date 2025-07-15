@@ -1,42 +1,36 @@
 module app;
 
+import core.stdc.stdlib : exit;
+import core.time : seconds, Duration;
+import std.algorithm.searching : canFind;
 import std.array : split;
 import std.file : readText;
 import std.format : format;
-import std.string : toUpper;
+import std.json : JSONValue, JSONOptions, parseJSON;
 import std.path : expandTilde;
 import std.stdio : writeln, stdout;
-import core.time : seconds, Duration;
-import vibe.stream.stdio: StdinStream;
-import std.algorithm.searching : canFind;
-import std.json : JSONValue, JSONOptions, parseJSON;
+import std.string : toUpper, toLower;
 import vibe.d : runEventLoop, disableDefaultSignalHandlers, logDebug, setTimer, setLogFile, LogLevel, readLine, runTask;
+import vibe.stream.stdio: StdinStream;
 
-import mem : mem;
-import cpu : cpu;
-import disk : disk;
-import temp : temp;
-import uptime : uptime;
-import battery : battery;
-import datetime : datetime;
-import blocklet : blocklet, event;
-import formatter : formatter, block_layout;
+import blocklet;
+import formatter;
 
-version(unittest)
+version (unittest)
 {
 
 import dunit;
 mixin Main;
 
-}
+} // unittest
 else
 {
 
-blocklet[string] blocklets;
-string[string] cache;
-JSONValue config;
+private Blocklet[string] blocklets;
+private string[string] cache;
+private JSONValue config;
 
-void refresh(string[] blockletsToRefresh = null)
+private void refresh(string[] blockletsToRefresh = null)
 {
     auto array = JSONValue.emptyArray;
 
@@ -47,16 +41,25 @@ void refresh(string[] blockletsToRefresh = null)
         if ((blockletsToRefresh && blockletsToRefresh.canFind(k)) || !(k in cache))
         {
             auto fn = blocklets[k];
-            auto layout = new block_layout();
+            auto layout = new BlockLayout();
 
             if (v["show_label"].boolean == true)
             {
-                layout.add_title(k.toUpper);
+                layout.addTitle(k.toUpper);
             }
 
-            fn.call(layout);
-            auto f = new formatter(layout, v["color"].str);
+            try
+            {
+                fn.call(layout);
+            }
+            catch (Exception e)
+            {
+                layout.addValue("Error: %s".format(e.msg), Colors.red);
+            }
+
+            auto f = new Formatter(layout, v["color"].str);
             text = f.get;
+
             cache[k] = text;
         }
         else
@@ -81,7 +84,7 @@ void refresh(string[] blockletsToRefresh = null)
     stdout.flush();
 }
 
-void error(string msg)
+private void error(string msg)
 {
     auto array = JSONValue.emptyArray;
 
@@ -94,16 +97,36 @@ void error(string msg)
     writeln(",", array.toString(JSONOptions.doNotEscapeSlashes));
     stdout.flush();
 
-    runEventLoop();
+    exit(runEventLoop());
 }
 
-void main()
+private ClassInfo[string] getBlockletClasses()
 {
-    auto configFile = "~/.blocklets.json".expandTilde;
+    ClassInfo[string] info;
+
+    foreach (mod; ModuleInfo)
+    {
+        foreach (cla; mod.localClasses)
+        {
+            if (cla.base is Blocklet.classinfo)
+            {
+                info[cla.name.split(".")[$ - 1].toLower] = cla;
+            }
+        }
+    }
+
+    return info;
+}
+
+int main()
+{
+    const auto configFile = "~/.blocklets.json".expandTilde;
 
     disableDefaultSignalHandlers();
 
     //setLogFile("~/blocklet.log".expandTilde, LogLevel.debug_);
+
+    auto blockletClasses = getBlockletClasses();
 
     writeln("{\"version\":1,\"click_events\":true}");
     writeln("[[]");
@@ -111,7 +134,7 @@ void main()
     try
     {
         config = configFile
-            .readText()
+            .readText
             .parseJSON(JSONOptions.preserveObjectOrder);
     }
     catch (Exception e)
@@ -126,45 +149,28 @@ void main()
         intervalToBlocklet[v["interval"].integer] ~= k;
     }
 
-    foreach (k, v; intervalToBlocklet)
+    foreach (interval, blockletNames; intervalToBlocklet)
     {
-        foreach (blocklet; v)
+        foreach (blocklet; blockletNames)
         {
             if (blocklet in blocklets)
             {
                 continue;
             }
-            switch (blocklet)
+            if (!(blocklet in blockletClasses))
             {
-                case "uptime":
-                    blocklets["uptime"] = new uptime;
-                    break;
-                case "datetime":
-                    blocklets["datetime"] = new datetime;
-                    break;
-                case "temp":
-                    blocklets["temp"] = new temp;
-                    break;
-                case "mem":
-                    blocklets["mem"] = new mem;
-                    break;
-                case "disk":
-                    blocklets["disk"] = new disk;
-                    break;
-                case "cpu":
-                    blocklets["cpu"] = new cpu;
-                    break;
-                case "battery":
-                    blocklets["battery"] = new battery;
-                    break;
-                default:
-                    break;
+                error("Unknown blocklet \"%s\"".format(blocklet));
             }
+
+            // Instantiate given Blocklet using its ClassInfo
+            blocklets[blocklet] = cast(Blocklet)blockletClasses[blocklet].create();
         }
-        setTimer(k.seconds, () { refresh(v); }, true);
+
+        // Start time for given set of blocklets sharing the same interval
+        setTimer(interval.seconds, () { refresh(blockletNames); }, true);
     }
 
-    refresh();
+    blockletClasses.destroy();
 
     auto stream = new StdinStream;
 
@@ -174,16 +180,18 @@ void main()
             try
             {
                 auto buffer = stream.readLine(512, "\n");
+                // i3bar will always open with single [
                 if (buffer[0] == '[')
                 {
                     continue;
                 }
+                // First event will not start with ",", but
+                // the others will
                 if (buffer[0] == ',')
                 {
                     buffer = buffer[1 .. $];
                 }
-                auto line = cast(string)buffer;
-                auto json = line.parseJSON();
+                const auto json = (cast(string)buffer).parseJSON;
                 refresh([json["name"].str]);
             }
             catch (Exception e)
@@ -195,7 +203,9 @@ void main()
 
     runTask(task);
 
-    runEventLoop();
+    refresh();
+
+    return runEventLoop();
 }
 
-}
+} // !unittest

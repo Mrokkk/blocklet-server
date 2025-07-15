@@ -1,11 +1,11 @@
 module utils;
 
-import std.math : abs;
 import std.format : format;
+import std.math : abs;
 
-string human_readable_size(float num)
+string humanReadableSize(float num) @safe
 {
-    foreach (unit; ["K", "M", "G", "T"])
+    foreach (const unit; ["", "K", "M", "G", "T"])
     {
         if (abs(num) < 1024.0)
         {
@@ -20,9 +20,11 @@ string human_readable_size(float num)
 unittest
 {
     import dunit;
-    human_readable_size(1024.0).assertEquals("1.0M");
-    human_readable_size(2050.0).assertEquals("2.0M");
-    human_readable_size(128).assertEquals("128.0K");
-    human_readable_size(1024*1024).assertEquals("1.0G");
-    human_readable_size(1024*1024*1024).assertEquals("1.0T");
+    humanReadableSize(1024.0).assertEquals("1.0K");
+    humanReadableSize(2050.0).assertEquals("2.0K");
+    humanReadableSize(128).assertEquals("128");
+    humanReadableSize(1024*1024).assertEquals("1.0M");
+    humanReadableSize(1024*1024*1024).assertEquals("1.0G");
+    humanReadableSize(1024*1024*1024*1024).assertEquals("1.0T");
+    humanReadableSize(1024*1024*1024*1024*1024).assertEquals("1.0P");
 }

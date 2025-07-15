@@ -7,3 +7,6 @@ __test__*__
 blocklet-server
 tests
 *.core
+*.tar.zst
+archlinux/pkg/
+archlinux/src/

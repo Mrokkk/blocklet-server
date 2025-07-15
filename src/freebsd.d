@@ -2,8 +2,8 @@ module freebsd;
 
 version (FreeBSD):
 
-import std.string : toStringz;
 import core.sys.freebsd.sys.sysctl;
+import std.string : toStringz;
 
 auto readSysctl(T)(string name)
 {

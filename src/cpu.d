@@ -1,117 +1,124 @@
 module cpu;
 
-import std.conv : to;
-import std.range : zip;
-import std.array : empty;
-import std.format : format;
-import std.typecons : tuple;
-import std.datetime : msecs;
-import core.thread : Thread;
 import core.sync.mutex : Mutex;
+import core.thread : Thread;
 import std.algorithm : map, count, sum;
+import std.array : empty;
+import std.conv : to;
+import std.datetime : msecs;
+import std.format : format;
+import std.range : zip;
+import std.typecons : tuple;
 
-import blocklet : blocklet, event;
-import formatter : block_layout, colors;
+import blocklet : Blocklet, Event;
+import formatter : BlockLayout, Colors;
 
-shared(float[]) global_usage;
+private shared(float[]) globalUsage;
+private shared(Mutex) mtx;
 
-shared(Mutex) mtx;
-
-class cpu : blocklet
+class Cpu : Blocklet
 {
     this()
     {
         mtx = new shared Mutex();
-        thread_ = new Thread(&cpu_usage_thread).start();
+        thread_ = new Thread(&cpuUsageThread).start();
     }
 
-    void call(block_layout f)
+    override void call(BlockLayout f)
     {
         mtx.lock_nothrow();
-        auto usage = global_usage;
+        const auto usage = globalUsage.dup;
         mtx.unlock_nothrow();
         if (usage.empty)
         {
-            f.add_value("not ready yet");
+            f.addValue("not ready yet");
             return;
         }
-        foreach (val; usage)
+        foreach (const val; usage)
         {
-            colors color = colors.normal;
+            auto color = Colors.normal;
             if (val > 80)
             {
-                color = colors.red;
+                color = Colors.red;
             }
             else if (val > 50)
             {
-                color = colors.yellow;
+                color = Colors.yellow;
             }
-            f.add_value("%3.0f".format(val), color);
+            f.addValue("%3.0f".format(val), color);
         }
-    }
-
-    void handle_event(event)
-    {
     }
 
     private Thread thread_;
 }
 
-void cpu_usage_thread()
+private void cpuUsageThread()
 {
-    auto get_core_times()
-    {
-        version (FreeBSD)
-        {
-            import freebsd : readSysctlArray;
-
-            size_t len;
-            ulong[] idles, total;
-
-            auto values = "kern.cp_times".readSysctlArray!(ulong, 128)(len);
-            auto cpus = len / 5;
-
-            for (ulong i = 0; i < cpus; ++i)
-            {
-                auto off = i * 5;
-                total ~= sum(values[off .. off + 5]);
-                idles ~= values[i * 5 + 4];
-            }
-
-            return tuple(idles, total);
-        }
-        else
-        {
-            import std.file : readText;
-            import std.array : split, join;
-            import std.regex : regex, matchAll;
-
-            auto values = "/proc/stat".readText()[1 .. $].matchAll(regex("cpu.*"))
-                .map!(a => a.hit().split()[1 .. $].map!(a => a.to!int));
-            ulong[] idles, total;
-            foreach (core_data; values)
-            {
-                total ~= sum(core_data);
-                idles ~= core_data[3] + core_data[4];
-            }
-            return tuple(idles, total);
-        }
-    }
-
     while (1)
     {
-        auto start = get_core_times();
+        const auto start = getCoreTimes();
         Thread.sleep(2000.msecs);
-        auto end = get_core_times();
+        const auto end = getCoreTimes();
         float[] usage;
-        foreach (idle_start, idle_end, total_start, total_end; zip(start[0], end[0], start[1], end[1]))
+        foreach (idleStart, idleEnd, totalStart, totalEnd; zip(start.idle, end.idle, start.total, end.total))
         {
-            auto idle = (idle_end - idle_start).to!float;
-            auto total = (total_end - total_start).to!float;
+            const auto idle = (idleEnd - idleStart).to!float;
+            const auto total = (totalEnd - totalStart).to!float;
             usage ~= (1000 * (total - idle) / total) / 10;
         }
         mtx.lock_nothrow();
-        global_usage = cast(shared(float[]))usage;
+        globalUsage = cast(shared(float[]))usage;
         mtx.unlock_nothrow();
     }
 }
+
+version (FreeBSD)
+{
+
+import freebsd : readSysctlArray;
+
+private auto getCoreTimes()
+{
+    size_t len;
+    ulong[] idles, total;
+
+    const auto values = "kern.cp_times".readSysctlArray!(ulong, 128)(len);
+    const auto cpus = len / 5;
+
+    for (ulong i = 0; i < cpus; ++i)
+    {
+        const auto off = i * 5;
+        total ~= sum(values[off .. off + 5]);
+        idles ~= values[i * 5 + 4];
+    }
+
+    return tuple!("idle", "total")(idles, total);
+}
+
+} // FreeBSD
+
+version (linux)
+{
+
+import std.array : split, join;
+import std.file : readText;
+import std.regex : regex, matchAll;
+
+private auto getCoreTimes()
+{
+    auto values = "/proc/stat".readText()[1 .. $]
+        .matchAll(regex("cpu.*"))
+        .map!(a => a.hit().split()[1 .. $].map!(a => a.to!int));
+
+    ulong[] idles, total;
+
+    foreach (coreData; values)
+    {
+        total ~= sum(coreData);
+        idles ~= coreData[3] + coreData[4];
+    }
+
+    return tuple!("idle", "total")(idles, total);
+}
+
+} // linux
