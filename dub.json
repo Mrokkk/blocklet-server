@@ -1,24 +1,12 @@
 {
     "name": "blocklet-server",
     "authors": ["Mrokkk"],
-    "description": "Server/client application for handling i3blocks blocklets",
+    "description": "Status bar for i3",
     "copyright": "Copyright © 2017, Mrokkk",
     "license": "MIT",
     "dependencies": {
         "vibe-d": "~>0.10.1"
     },
-    "excludedSourceFiles": ["src/client/*"],
-    "subPackages": [
-        {
-            "name": "client",
-            "targetName": "client",
-            "targetType": "executable",
-            "sourcePaths": ["src/client"],
-            "sourceFiles": ["src/config.d"],
-            "importPaths": ["src"],
-            "dependencies": {}
-        }
-    ],
     "configurations": [
         {
             "name": "application",

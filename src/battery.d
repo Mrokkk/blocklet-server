@@ -1,12 +1,6 @@
 module battery;
 
-import std.conv : to;
-import std.array : split;
-import std.string: strip;
 import std.format : format;
-import std.algorithm : map;
-import std.process : executeShell;
-import std.file : readText, dirEntries, SpanMode;
 
 import formatter : block_layout, colors;
 import blocklet : blocklet, event;
@@ -17,12 +11,10 @@ class battery : blocklet
     {
         version (FreeBSD)
         {
-            import core.sys.freebsd.sys.sysctl : sysctlbyname;
+            import freebsd : readSysctl;
 
-            uint val, state;
-            size_t len = val.sizeof;
-            sysctlbyname("hw.acpi.battery.life", &val, &len, null, 0);
-            sysctlbyname("hw.acpi.battery.state", &state, &len, null, 0);
+            auto val = "hw.acpi.battery.life".readSysctl!uint;
+            auto state = "hw.acpi.battery.state".readSysctl!uint;
 
             auto discharging = state == 1;
             auto charging = state == 2;
@@ -50,6 +42,12 @@ class battery : blocklet
         }
         else
         {
+            import std.conv : to;
+            import std.array : split;
+            import std.string: strip;
+            import std.algorithm : map;
+            import std.file : readText, dirEntries, SpanMode;
+
             int mean = 0;
             int numberOfValues = 0;
 

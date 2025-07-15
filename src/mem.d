@@ -1,14 +1,8 @@
 module mem;
 
-import std.conv : to;
-import std.array : split;
-import std.file : readText;
-import std.process : executeShell;
-import std.regex : regex, matchAll;
-
+import formatter : block_layout;
 import blocklet : blocklet, event;
 import utils : human_readable_size;
-import formatter : block_layout;
 
 class mem : blocklet
 {
@@ -16,6 +10,8 @@ class mem : blocklet
     {
         version (FreeBSD)
         {
+            import freebsd : readSysctl;
+
             struct VmStat
             {
                 // All values are in KiB
@@ -28,44 +24,17 @@ class mem : blocklet
             {
                 VmStat stat;
 
-                auto command = executeShell("vmstat -s");
-
-                if (command.status != 0)
-                {
-                    return stat;
-                }
-
-                auto regexes = regex([
-                    `([0-9]+)\s*pages active`,
-                    `([0-9]+)\s*pages inactive`,
-                    `([0-9]+)\s*pages in the laundry queue`,
-                    `([0-9]+)\s*pages wired down`,
-                    `([0-9]+)\s*pages free[^d]`,
-                    `([0-9]+)\s*bytes per page`
-                ]);
-
-                auto match = command.output.matchAll(regexes);
-
-                if (!match)
-                {
-                    return stat;
-                }
-
-                auto active = match.front[1].to!ulong;
-                match.popFront();
-                auto inactive = match.front[1].to!ulong;
-                match.popFront();
-                auto laundry = match.front[1].to!ulong;
-                match.popFront();
-                auto wired = match.front[1].to!ulong;
-                match.popFront();
-                auto free = match.front[1].to!ulong;
-                match.popFront();
-                auto pageSize = match.front[1].to!ulong;
+                auto pageSize = "vm.stats.vm.v_page_size".readSysctl!uint;
+                auto total = "vm.stats.vm.v_page_count".readSysctl!ulong;
+                auto active = "vm.stats.vm.v_active_count".readSysctl!ulong;
+                auto inactive = "vm.stats.vm.v_inactive_count".readSysctl!ulong;
+                auto cached = "vm.stats.vm.v_cache_count".readSysctl!ulong;
+                auto free = "vm.stats.vm.v_free_count".readSysctl!ulong;
+                auto wired = "vm.stats.vm.v_wire_count".readSysctl!ulong;
 
                 stat.free = free * pageSize / 1024;
-                stat.cached = (inactive + wired) * pageSize / 1024;
-                stat.total = (active + inactive + wired + laundry + free) * pageSize / 1024;
+                stat.cached = (inactive + cached + wired) * pageSize / 1024;
+                stat.total = total * pageSize / 1024;
 
                 return stat;
             }
@@ -77,6 +46,11 @@ class mem : blocklet
         }
         else
         {
+            import std.conv : to;
+            import std.array : split;
+            import std.file : readText;
+            import std.regex : regex, matchAll;
+
             auto meminfo = "/proc/meminfo".readText();
             auto memtotal = meminfo.matchAll(regex("MemTotal.*")).hit().split()[1].to!float;
             auto memfree = meminfo.matchAll(regex("MemFree.*")).hit().split()[1].to!float;

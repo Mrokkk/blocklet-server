@@ -17,16 +17,14 @@ class temp : blocklet
     {
         version (FreeBSD)
         {
-            import core.sys.freebsd.sys.sysctl : sysctlbyname;
+            import freebsd : readSysctl;
             uint found = 0;
 
             for (uint i = 0; i < 12; ++i)
             {
-                uint val = 0;
-                size_t len = val.sizeof;
-                auto name = "hw.acpi.thermal.tz%d.temperature".format(i).toStringz();
+                auto val = "hw.acpi.thermal.tz%d.temperature".format(i).readSysctl!uint;
 
-                if (sysctlbyname(cast(const char*)name, &val, &len, null, 0))
+                if (val == 0)
                 {
                     break;
                 }

@@ -1,17 +1,14 @@
 module cpu;
 
+import std.conv : to;
 import std.range : zip;
 import std.array : empty;
-import std.file : readText;
 import std.format : format;
+import std.typecons : tuple;
 import std.datetime : msecs;
-import std.conv : to, roundTo;
-import std.array : split, join;
-import std.typecons : tuple, Tuple;
-import std.regex : regex, matchAll;
-import std.algorithm : map, count, sum;
 import core.thread : Thread;
 import core.sync.mutex : Mutex;
+import std.algorithm : map, count, sum;
 
 import blocklet : blocklet, event;
 import formatter : block_layout, colors;
@@ -66,18 +63,13 @@ void cpu_usage_thread()
     {
         version (FreeBSD)
         {
-            import core.sys.freebsd.sys.sysctl : sysctlbyname;
+            import freebsd : readSysctlArray;
 
-            ulong[128] values;
-            size_t len = values.sizeof;
+            size_t len;
             ulong[] idles, total;
 
-            if (sysctlbyname("kern.cp_times", &values, &len, null, 0))
-            {
-                return tuple(idles, total);
-            }
-
-            auto cpus = len / ulong.sizeof / 5;
+            auto values = "kern.cp_times".readSysctlArray!(ulong, 128)(len);
+            auto cpus = len / 5;
 
             for (ulong i = 0; i < cpus; ++i)
             {
@@ -90,6 +82,10 @@ void cpu_usage_thread()
         }
         else
         {
+            import std.file : readText;
+            import std.array : split, join;
+            import std.regex : regex, matchAll;
+
             auto values = "/proc/stat".readText()[1 .. $].matchAll(regex("cpu.*"))
                 .map!(a => a.hit().split()[1 .. $].map!(a => a.to!int));
             ulong[] idles, total;

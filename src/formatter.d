@@ -86,7 +86,7 @@ class formatter
     this(block_layout layout, string default_color)
     {
         default_color_ = default_color;
-        string_ = "| <span color=\"%s\">".format(default_color_);
+        string_ = "<span color=\"gray\">|</span> <span color=\"%s\">".format(default_color_);
         foreach (elem; layout.get)
         {
             if (elem.color != colors.normal)

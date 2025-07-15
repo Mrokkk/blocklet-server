@@ -1,32 +1,39 @@
 {
     "blocks": {
-        "temp": {
-            "color": "#cf6a4c",
-            "show_label": true
-        },
-        "cpu": {
+        "battery": {
             "color": "#2d8659",
-            "show_label": true
-        },
-        "datetime": {
-            "color": "#3399ff",
-            "show_label": false
+            "show_label": true,
+            "interval": 60
         },
         "disk": {
-            "color": "#2d8659",
-            "show_label": true
+            "color": "#cf6a4c",
+            "show_label": true,
+            "interval": 360
         },
         "mem": {
             "color": "#8080ff",
-            "show_label": true
+            "show_label": true,
+            "interval": 60
+        },
+        "cpu": {
+            "color": "#2d8659",
+            "show_label": true,
+            "interval": 5
+        },
+        "temp": {
+            "color": "#cf6a4c",
+            "show_label": true,
+            "interval": 5
         },
         "uptime": {
             "color": "#2d8659",
-            "show_label": false
+            "show_label": false,
+            "interval": 60
         },
-        "ifaces": {
-            "color": "#8080ff",
-            "show_label": true
+        "datetime": {
+            "color": "#3399ff",
+            "show_label": false,
+            "interval": 10
         }
     }
 }
