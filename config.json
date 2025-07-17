@@ -2,38 +2,42 @@
     "blocks": {
         "battery": {
             "color": "#2d8659",
-            "show_label": true,
+            "label": "BAT",
+            "showLabel": true,
             "interval": 60
         },
         "disk": {
             "color": "#cf6a4c",
-            "show_label": true,
+            "showLabel": true,
             "interval": 360
         },
         "mem": {
             "color": "#8080ff",
-            "show_label": true,
+            "showLabel": true,
             "interval": 60
         },
         "cpu": {
             "color": "#2d8659",
-            "show_label": true,
+            "showLabel": true,
             "interval": 5
         },
         "temp": {
             "color": "#cf6a4c",
-            "show_label": true,
+            "showLabel": true,
             "interval": 5
         },
         "uptime": {
             "color": "#2d8659",
-            "show_label": false,
+            "showLabel": false,
             "interval": 60
         },
         "datetime": {
             "color": "#3399ff",
-            "show_label": false,
-            "interval": 10
+            "showLabel": false,
+            "interval": 5,
+            "actions": {
+                "rightClick": "gsimplecal"
+            }
         }
     }
 }

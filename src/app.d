@@ -4,6 +4,7 @@ import core.stdc.stdlib : exit;
 import core.time : seconds, Duration;
 import std.algorithm.searching : canFind;
 import std.array : split;
+import std.conv : to;
 import std.file : readText;
 import std.format : format;
 import std.json : JSONValue, JSONOptions, parseJSON;
@@ -15,6 +16,7 @@ import vibe.stream.stdio: StdinStream;
 
 import blocklet;
 import formatter;
+import utils;
 
 version (unittest)
 {
@@ -30,101 +32,13 @@ private Blocklet[string] blocklets;
 private string[string] cache;
 private JSONValue config;
 
-private void refresh(string[] blockletsToRefresh = null)
-{
-    auto array = JSONValue.emptyArray;
-
-    foreach (string k, JSONValue v; config["blocks"])
-    {
-        string text;
-
-        if ((blockletsToRefresh && blockletsToRefresh.canFind(k)) || !(k in cache))
-        {
-            auto fn = blocklets[k];
-            auto layout = new BlockLayout();
-
-            if (v["show_label"].boolean == true)
-            {
-                layout.addTitle(k.toUpper);
-            }
-
-            try
-            {
-                fn.call(layout);
-            }
-            catch (Exception e)
-            {
-                layout.addValue("Error: %s".format(e.msg), Colors.red);
-            }
-
-            auto f = new Formatter(layout, v["color"].str);
-            text = f.get;
-
-            cache[k] = text;
-        }
-        else
-        {
-            text = cache[k];
-        }
-
-        auto entry = JSONValue([
-            "full_text": text,
-            "color": v["color"].str,
-            "markup": "pango",
-            "name": k
-        ]);
-
-        entry["separator"] = false;
-        entry["separator_block_width"] = 0;
-
-        array.array ~= entry;
-    }
-
-    writeln(",", array.toString(JSONOptions.doNotEscapeSlashes));
-    stdout.flush();
-}
-
-private void error(string msg)
-{
-    auto array = JSONValue.emptyArray;
-
-    array.array ~= JSONValue([
-        "full_text": msg,
-        "color": "#ff0000",
-        "name": "error"
-    ]);
-
-    writeln(",", array.toString(JSONOptions.doNotEscapeSlashes));
-    stdout.flush();
-
-    exit(runEventLoop());
-}
-
-private ClassInfo[string] getBlockletClasses()
-{
-    ClassInfo[string] info;
-
-    foreach (mod; ModuleInfo)
-    {
-        foreach (cla; mod.localClasses)
-        {
-            if (cla.base is Blocklet.classinfo)
-            {
-                info[cla.name.split(".")[$ - 1].toLower] = cla;
-            }
-        }
-    }
-
-    return info;
-}
-
 int main()
 {
     const auto configFile = "~/.blocklets.json".expandTilde;
 
     disableDefaultSignalHandlers();
 
-    //setLogFile("~/blocklet.log".expandTilde, LogLevel.debug_);
+    setLogFile("~/blocklet.log".expandTilde, LogLevel.debug_);
 
     auto blockletClasses = getBlockletClasses();
 
@@ -172,12 +86,11 @@ int main()
 
     blockletClasses.destroy();
 
-    auto stream = new StdinStream;
-
     auto task = () nothrow {
-        while (1)
+        try
         {
-            try
+            auto stream = new StdinStream;
+            while (1)
             {
                 auto buffer = stream.readLine(512, "\n");
                 // i3bar will always open with single [
@@ -191,21 +104,132 @@ int main()
                 {
                     buffer = buffer[1 .. $];
                 }
-                const auto json = (cast(string)buffer).parseJSON;
-                refresh([json["name"].str]);
+                const auto line = (cast(string)buffer);
+                const auto json = line.parseJSON;
+                const auto event = cast(Event)json["button"].integer;
+                refresh([json["name"].str], event);
             }
-            catch (Exception e)
-            {
-                logDebug(e.msg);
-            }
+        }
+        catch (Exception e)
+        {
+            error("Error: " ~ e.msg);
         }
     };
 
-    runTask(task);
-
     refresh();
 
+    runTask(task);
+
     return runEventLoop();
+}
+
+private void error(string msg) nothrow
+{
+    auto array = JSONValue.emptyArray;
+
+    try
+    {
+        array.array ~= JSONValue([
+            "full_text": msg,
+            "color": "#ff0000",
+            "name": "error"
+        ]);
+
+        writeln(",", array.toString(JSONOptions.doNotEscapeSlashes));
+        stdout.flush();
+    }
+    catch (Exception e)
+    {
+    }
+
+    exit(runEventLoop());
+}
+
+private ClassInfo[string] getBlockletClasses()
+{
+    ClassInfo[string] info;
+
+    foreach (mod; ModuleInfo)
+    {
+        foreach (cla; mod.localClasses)
+        {
+            if (cla.base is Blocklet.classinfo)
+            {
+                info[cla.name.split(".")[$ - 1].toLower] = cla;
+            }
+        }
+    }
+
+    return info;
+}
+
+private void refresh(string[] blockletsToRefresh = null, Event event = Event.none)
+{
+    auto array = JSONValue.emptyArray;
+
+    foreach (string blockletName, JSONValue v; config["blocks"])
+    {
+        string text;
+
+        if ((blockletsToRefresh && blockletsToRefresh.canFind(blockletName)) || !(blockletName in cache))
+        {
+            auto fn = blocklets[blockletName];
+            auto layout = new BlockLayout();
+
+            if (v["showLabel"].boolean == true)
+            {
+                if ("label" in v)
+                {
+                    layout.addTitle(v["label"].str);
+                }
+                else
+                {
+                    layout.addTitle(blockletName.toUpper);
+                }
+            }
+
+            try
+            {
+                fn.call(layout);
+                if (event != Event.none)
+                {
+                    fn.handleEvent(event);
+                    if ("actions" in v && event.to!string in v["actions"])
+                    {
+                        executeCommand(v["actions"][event.to!string].str);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                layout.addValue("Error: %s".format(e.msg), Colors.red);
+            }
+
+            auto f = new Formatter(layout, v["color"].str);
+            text = f.get;
+
+            cache[blockletName] = text;
+        }
+        else
+        {
+            text = cache[blockletName];
+        }
+
+        auto entry = JSONValue([
+            "full_text": text,
+            "color": v["color"].str,
+            "markup": "pango",
+            "name": blockletName
+        ]);
+
+        entry["separator"] = false;
+        entry["separator_block_width"] = 0;
+
+        array.array ~= entry;
+    }
+
+    writeln(",", array.toString(JSONOptions.doNotEscapeSlashes));
+    stdout.flush();
 }
 
 } // !unittest

@@ -2,6 +2,30 @@ module utils;
 
 import std.format : format;
 import std.math : abs;
+import vibe.core.process : executeShell;
+
+version (FreeBSD)
+{
+
+// FIXME: there's some bug in FreeBSD handling in
+// vibe-d or eventcore which causes commands to not
+// be executed immediately and sometimes blocks
+// everything
+void executeCommand(string)
+{
+}
+
+} // FreeBSD
+
+version (linux)
+{
+
+void executeCommand(string cmd)
+{
+    executeShell(cmd);
+}
+
+} // linux
 
 string humanReadableSize(float num) @safe
 {

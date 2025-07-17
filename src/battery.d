@@ -53,7 +53,7 @@ import freebsd : readSysctl;
 // Reference:
 // https://man.freebsd.org/cgi/man.cgi?acpi_battery
 
-enum
+private enum
 {
     ACPI_BATT_STAT_DISCHARG = 1,
     ACPI_BATT_STAT_CHARGING = 2,

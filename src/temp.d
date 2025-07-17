@@ -28,6 +28,9 @@ class Temp : Blocklet
 version (FreeBSD)
 {
 
+// Reference:
+// https://man.freebsd.org/cgi/man.cgi?query=acpi_thermal&sektion=4&n=1
+
 import freebsd : readSysctl;
 
 private uint[] getTemperatures()

@@ -1,10 +1,11 @@
 module datetime;
 
-import std.datetime : msecs, Clock;
+import std.datetime : Clock;
 import std.format : format;
 
 import blocklet : Blocklet, Event;
 import formatter : BlockLayout;
+import utils : executeCommand;
 
 class Datetime : Blocklet
 {

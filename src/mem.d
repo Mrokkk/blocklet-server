@@ -14,7 +14,6 @@ class Mem : Blocklet
 
         f.addLabel("FREE").addValue(humanReadableSize(vmStat.free))
          .addLabel("CACHE").addValue(humanReadableSize(vmStat.cache))
-         .addLabel("BUF").addValue(humanReadableSize(vmStat.buf))
          .addLabel("TOTAL").addValue(humanReadableSize(vmStat.total));
     }
 }
@@ -34,11 +33,10 @@ private auto getVmStat()
     const auto wired = "vm.stats.vm.v_wire_count".readSysctl!ulong;
     const auto buf = "vfs.bufspace".readSysctl!ulong;
 
-    return tuple!("total", "free", "cache", "buf")(
+    return tuple!("total", "free", "cache")(
         total * pageSize,
         free * pageSize,
-        (inactive + cached + wired) * pageSize,
-        buf);
+        (inactive + cached + wired) * pageSize + buf);
 }
 
 } // FreeBSD
@@ -59,7 +57,7 @@ private auto getVmStat()
     const auto buf = meminfo.matchAll(regex(`Buffers.*`)).hit().split[1].to!ulong * 1024;
     const auto cache = meminfo.matchAll(regex(`Cached.*`)).hit().split[1].to!ulong * 1024;
 
-    return tuple!("total", "free", "cache", "buf")(total, free, buf, cache);
+    return tuple!("total", "free", "cache")(total, free, buf + cache);
 }
 
 
